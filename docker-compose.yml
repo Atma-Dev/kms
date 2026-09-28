@@ -1,0 +1,28 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: api-kms:latest
+    restart: unless-stopped
+    ports:
+      # pick a free host port on the shared server (ng-hris uses 8082) and set
+      # it here, or export WEB_PORT before `docker compose up`
+      - "127.0.0.1:${WEB_PORT:-8084}:${APP_PORT:-8000}"
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env:ro
+      - storage:/app/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${APP_PORT:-8000}/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  storage:
+    driver: local

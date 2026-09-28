@@ -1,0 +1,11 @@
+-- users.is_active was ng-sales' operator availability flag: it decided whether
+-- someone was in the round robin that got assigned work. This app has no such
+-- queue, and nothing in the LMS ever read it — not login, not course access,
+-- not enrolment. All that remained was a scheduled job switching it off for
+-- every idle account and a column in the directory that was therefore always
+-- false.
+--
+-- Whether an account may be used at all is users.membership_status, which login
+-- does check. If "active student vs alumni" is ever needed, it belongs on the
+-- per-term classroom membership, not on a global flag.
+ALTER TABLE users DROP COLUMN is_active;

@@ -1,0 +1,10 @@
+.env
+.env.staging
+.env.production
+go.log
+/tmp
+main
+*.sqlite
+
+# Uploaded files (app/attachment)
+/storage

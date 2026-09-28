@@ -1,0 +1,16 @@
+.git
+.gitlab-ci.yml
+.idea
+.env
+.env.*
+tmp
+storage
+seed
+main
+go.log
+*.md
+
+# The piutang-sagara backup — 350MB of build context for a file nothing reads.
+# Only two of its tables are used, and they live in data_migration as CSV.
+*.sqlite
+docker-compose*.yml
