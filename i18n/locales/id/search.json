@@ -1,0 +1,21 @@
+{
+  "search": {
+    "title": "Pencarian",
+    "subtitle": "Temukan dokumen dari isinya, bukan cuma judulnya",
+    "placeholder": "Cari dokumen...",
+    "sortRelevance": "Relevansi",
+    "sortNewest": "Terbaru",
+    "sortPopular": "Terpopuler",
+    "allSpaces": "Semua space",
+    "allCategories": "Semua kategori",
+    "allTags": "Semua tag",
+    "allAuthors": "Semua penulis",
+    "updatedFrom": "Diperbarui dari",
+    "updatedTo": "Diperbarui sampai",
+    "noResults": "Tidak ada yang cocok dengan \"{query}\".",
+    "startTyping": "Ketik untuk mencari, atau pakai filter untuk menelusuri.",
+    "recentSearches": "Pencarian terakhir",
+    "documents": "Dokumen",
+    "seeAllResults": "Lihat semua hasil untuk \"{query}\""
+  }
+}

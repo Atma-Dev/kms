@@ -1,0 +1,21 @@
+{
+  "search": {
+    "title": "Search",
+    "subtitle": "Find a document by what is written in it",
+    "placeholder": "Search documents...",
+    "sortRelevance": "Relevance",
+    "sortNewest": "Newest",
+    "sortPopular": "Most read",
+    "allSpaces": "All spaces",
+    "allCategories": "All categories",
+    "allTags": "All tags",
+    "allAuthors": "All authors",
+    "updatedFrom": "Updated from",
+    "updatedTo": "Updated to",
+    "noResults": "Nothing matches \"{query}\".",
+    "startTyping": "Type to search, or filter to browse.",
+    "recentSearches": "Recent searches",
+    "documents": "Documents",
+    "seeAllResults": "See all results for \"{query}\""
+  }
+}

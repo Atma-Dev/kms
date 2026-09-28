@@ -1,0 +1,29 @@
+{
+  "queue": {
+    "title": "Queue",
+    "subtitle": "Background job queue — dispatched work, retries and failures",
+    "registeredTitle": "Registered handlers",
+    "noHandlersRegistered": "No queue handlers are registered yet.",
+    "statPending": "Pending",
+    "statRunning": "Running",
+    "statFailed": "Failed",
+    "statDelayed": "Delayed",
+    "statOldestPending": "Oldest Pending",
+    "allQueuesPlaceholder": "All Queues",
+    "retryAllFailed": "Retry All Failed",
+    "purgeFinished": "Clear Finished",
+    "columnQueue": "Queue",
+    "columnAttempts": "Attempts",
+    "columnLastError": "Last Error",
+    "columnDuration": "Duration",
+    "actionRetry": "Retry",
+    "actionCancel": "Cancel",
+    "attemptShort": "attempt {n}/{max}",
+    "liveFeed": {
+      "title": "Live",
+      "connected": "connected",
+      "reconnecting": "reconnecting...",
+      "noJobsYet": "No activity yet."
+    }
+  }
+}

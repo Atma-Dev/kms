@@ -1,0 +1,15 @@
+{
+  "schedules": {
+    "title": "Schedules",
+    "subtitle": "Cron schedule for every registered background job",
+    "columnCron": "Cron Expression",
+    "columnEnabled": "Enabled",
+    "columnNextRun": "Next Run",
+    "columnLastRun": "Last Run",
+    "actionRunNow": "Run Now",
+    "editSchedule": "Edit Schedule: {name}",
+    "fieldCronExpression": "Cron Expression",
+    "fieldEnabled": "Enabled",
+    "cronHint": "Standard 5-field cron (minute hour day-of-month month day-of-week), e.g. \"*/5 * * * *\"."
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "jobLogs": {
+    "title": "Log Tugas Terjadwal",
+    "subtitle": "Riwayat jalannya scheduled job dan queue job",
+    "registeredTitle": "Job terdaftar",
+    "everyInterval": "tiap {interval}",
+    "allTypesPlaceholder": "Semua Tipe",
+    "allJobsPlaceholder": "Semua Job",
+    "columnType": "Tipe",
+    "columnName": "Job",
+    "columnMessage": "Pesan",
+    "columnStartedAt": "Mulai",
+    "columnFinishedAt": "Selesai",
+    "statTotal": "Total Jalan",
+    "statSuccessRate": "Tingkat Sukses",
+    "statSuccess": "Sukses",
+    "statFailed": "Gagal",
+    "statSkipped": "Dilewati",
+    "statAvgDuration": "Rata-rata Durasi",
+    "trendTitle": "Tren Eksekusi",
+    "range24h": "24j",
+    "range7d": "7h",
+    "range30d": "30h",
+    "liveFeed": {
+      "title": "Live",
+      "connected": "terhubung",
+      "reconnecting": "menghubungkan ulang...",
+      "noRunsYet": "Belum ada yang berjalan."
+    }
+  }
+}

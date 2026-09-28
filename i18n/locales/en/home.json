@@ -1,0 +1,8 @@
+{
+  "home": {
+    "title": "Home",
+    "subtitle": "Welcome back",
+    "greeting": "Hi, {name}",
+    "message": "Use the menu on the left to get to the pages you have access to."
+  }
+}

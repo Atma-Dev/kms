@@ -1,0 +1,10 @@
+{
+  "notifications": {
+    "title": "Notifikasi",
+    "subtitle": "Semua yang dikirimkan kepada Anda",
+    "markAllRead": "Tandai semua dibaca",
+    "empty": "Belum ada notifikasi.",
+    "today": "Hari Ini",
+    "yesterday": "Kemarin"
+  }
+}

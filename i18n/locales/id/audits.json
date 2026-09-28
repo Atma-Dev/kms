@@ -1,0 +1,31 @@
+{
+  "audits": {
+    "title": "Audit",
+    "subtitle": "Riwayat perubahan field — siapa mengubah apa, dari apa menjadi apa",
+    "entryObjectTablePlaceholder": "Tabel, mis. deposits...",
+    "entryObjectIdPlaceholder": "ID record...",
+    "allActorsPlaceholder": "Semua Aktor",
+    "actionPlaceholder": "Aksi...",
+    "dateFromLabel": "Dari tanggal",
+    "dateToLabel": "Sampai tanggal",
+    "columnActor": "Aktor",
+    "columnAction": "Aksi",
+    "columnEntryObject": "Objek",
+    "liveFeed": {
+      "title": "Live",
+      "connected": "terhubung",
+      "reconnecting": "menghubungkan ulang...",
+      "noActivityYet": "Belum ada audit.",
+      "anonymous": "Anonim"
+    },
+    "detailModal": {
+      "actorLabel": "Aktor",
+      "entryObjectLabel": "Objek",
+      "endpointLabel": "Endpoint",
+      "beforeLabel": "Sebelum",
+      "afterLabel": "Sesudah",
+      "noTrails": "Tidak ada perubahan field yang tercatat untuk aksi ini.",
+      "empty": "— kosong —"
+    }
+  }
+}

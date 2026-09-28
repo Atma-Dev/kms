@@ -1,0 +1,30 @@
+{
+  "spaces": {
+    "title": "Spaces",
+    "subtitle": "Where knowledge is organised, one space per team or domain",
+    "detailTitle": "Space",
+    "createSpace": "New space",
+    "editSpace": "Edit space",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Engineering Handbook",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What belongs in this space?",
+    "iconLabel": "Icon",
+    "iconPlaceholder": "Select an icon…",
+    "iconHint": "Search Lucide icons. Leave empty for the default.",
+    "searchPlaceholder": "Search spaces",
+    "showArchived": "Archived",
+    "archived": "Archived",
+    "archive": "Archive",
+    "archiveTitle": "Archive this space?",
+    "archiveConfirm": "\"{space}\" will be hidden from the pickers.",
+    "archiveHint": "Its documents stay readable — a space is never deleted, because deleting it would take them with it.",
+    "noDescription": "No description",
+    "openSpace": "Open space",
+    "empty": "No spaces yet.",
+    "unarchive": "Unarchive",
+    "protectionLabel": "Protection level",
+    "protectionPlaceholder": "Choose a level",
+    "protectionHint": "The default every document here inherits unless it sets its own."
+  }
+}

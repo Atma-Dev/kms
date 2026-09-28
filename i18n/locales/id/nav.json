@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "groups": {
+      "dashboard": "DASHBOARD",
+      "admin": "ADMIN",
+      "knowledge": "PENGETAHUAN"
+    },
+    "items": {
+      "home": "Beranda",
+      "account": "Akun",
+      "m2mClients": "Klien M2M",
+      "activityLogs": "Log Aktivitas",
+      "audits": "Audit",
+      "system": "Sistem",
+      "jobsDashboard": "Dashboard Jobs",
+      "jobLogs": "Log Job",
+      "queue": "Antrian",
+      "schedules": "Jadwal",
+      "search": "Pencarian",
+      "spaces": "Space",
+      "tags": "Tag"
+    },
+    "language": "Bahasa",
+    "languageEnglish": "Inggris",
+    "languageIndonesian": "Bahasa Indonesia"
+  }
+}

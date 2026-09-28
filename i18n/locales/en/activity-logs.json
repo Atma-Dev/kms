@@ -1,0 +1,28 @@
+{
+  "activityLogs": {
+    "title": "Activity Logs",
+    "subtitle": "Every request made against the API",
+    "pathPlaceholder": "Path...",
+    "allMethodsPlaceholder": "All Methods",
+    "statusCodePlaceholder": "Status code...",
+    "allUsersPlaceholder": "All Users",
+    "dateFromLabel": "Date from",
+    "dateToLabel": "Date to",
+    "columnUser": "User",
+    "columnMethod": "Method",
+    "columnPath": "Path",
+    "columnIp": "IP",
+    "liveFeed": {
+      "title": "Live",
+      "connected": "connected",
+      "reconnecting": "reconnecting...",
+      "noActivityYet": "No activity yet.",
+      "anonymous": "Anonymous"
+    },
+    "detailModal": {
+      "requestLabel": "Request",
+      "responseLabel": "Response",
+      "empty": "— empty —"
+    }
+  }
+}

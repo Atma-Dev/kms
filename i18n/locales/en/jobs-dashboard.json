@@ -1,0 +1,24 @@
+{
+  "jobsDashboard": {
+    "title": "Jobs Dashboard",
+    "subtitle": "Combined overview of background job runs and the queue",
+    "runsHeading": "Runs",
+    "queueHeading": "Queue",
+    "totalRuns": "Total Runs",
+    "successRate": "Success Rate",
+    "failedRuns": "Failed Runs",
+    "avgDuration": "Avg Duration",
+    "backlogAge": "Oldest Pending",
+    "delayedHint": "{count} delayed",
+    "queueByJob": "Queue Depth by Job",
+    "queueEmpty": "Nothing queued right now.",
+    "failedCount": "{count} failed",
+    "perJobTitle": "Per Job Breakdown",
+    "columnRuns": "Runs",
+    "columnFailed": "Failed",
+    "columnAvg": "Avg",
+    "columnMax": "Max",
+    "columnLastRun": "Last Run",
+    "skippedCount": "{count} skipped"
+  }
+}

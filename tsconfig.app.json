@@ -1,0 +1,13 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "app/**/*", "app/**/*.vue"],
+  "exclude": ["app/**/__tests__/*"],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+
+    "paths": {
+      "@/*": ["./app/*"],
+      "@midoneui/*": ["./app/base/ui/*"],
+    }
+  }
+}

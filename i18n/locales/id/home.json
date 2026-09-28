@@ -1,0 +1,8 @@
+{
+  "home": {
+    "title": "Beranda",
+    "subtitle": "Selamat datang kembali",
+    "greeting": "Hai, {name}",
+    "message": "Gunakan menu di sebelah kiri untuk membuka halaman yang bisa Anda akses."
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "jobsDashboard": {
+    "title": "Dashboard Jobs",
+    "subtitle": "Ringkasan gabungan proses background job dan antrian",
+    "runsHeading": "Eksekusi",
+    "queueHeading": "Antrian",
+    "totalRuns": "Total Eksekusi",
+    "successRate": "Tingkat Sukses",
+    "failedRuns": "Eksekusi Gagal",
+    "avgDuration": "Durasi Rata-rata",
+    "backlogAge": "Antrian Tertua",
+    "delayedHint": "{count} ditunda",
+    "queueByJob": "Antrian per Job",
+    "queueEmpty": "Tidak ada antrian saat ini.",
+    "failedCount": "{count} gagal",
+    "perJobTitle": "Rincian per Job",
+    "columnRuns": "Eksekusi",
+    "columnFailed": "Gagal",
+    "columnAvg": "Rata-rata",
+    "columnMax": "Maks",
+    "columnLastRun": "Terakhir Jalan",
+    "skippedCount": "{count} dilewati"
+  }
+}

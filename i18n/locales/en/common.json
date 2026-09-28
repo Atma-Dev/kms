@@ -1,0 +1,49 @@
+{
+  "common": {
+    "actions": "Actions",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "reset": "Reset",
+    "previous": "Previous",
+    "next": "Next",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "search": "Search...",
+    "no": "No.",
+    "createdAt": "Created At",
+    "status": "Status",
+    "name": "Name",
+    "deleteTitle": "Delete",
+    "deleteConfirmMessage": "Are you sure want to delete this data ?",
+    "emptyDataTitle": "Empty Data",
+    "emptyDataMessage": "Data that you requested does not exist.",
+    "showingEntries": "Showing {from}–{to} of {total} entries",
+    "redirecting": "Redirecting...",
+    "saving": "Saving...",
+    "selectedCount": "{count} selected",
+    "all": "All",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "forbidden": {
+      "title": "Access Denied",
+      "message": "You don't have permission to open this page. Contact an admin if you think you should have access.",
+      "back": "Back to Home"
+    },
+    "notFound": {
+      "title": "Oops. This page has gone missing.",
+      "message": "You may have mistyped the address or the page may have moved.",
+      "back": "Back to Home"
+    },
+    "serverError": {
+      "title": "Something went wrong on our side.",
+      "message": "The page could not be loaded. Try again in a moment — if it keeps happening, tell an admin.",
+      "back": "Back to Home"
+    },
+    "logout": "Logout"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "audits": {
+    "title": "Audits",
+    "subtitle": "Field-level change history — who changed what, from what to what",
+    "entryObjectTablePlaceholder": "Table, e.g. deposits...",
+    "entryObjectIdPlaceholder": "Record id...",
+    "allActorsPlaceholder": "All Actors",
+    "actionPlaceholder": "Action...",
+    "dateFromLabel": "Date from",
+    "dateToLabel": "Date to",
+    "columnActor": "Actor",
+    "columnAction": "Action",
+    "columnEntryObject": "Entry Object",
+    "liveFeed": {
+      "title": "Live",
+      "connected": "connected",
+      "reconnecting": "reconnecting...",
+      "noActivityYet": "No audits yet.",
+      "anonymous": "Anonymous"
+    },
+    "detailModal": {
+      "actorLabel": "Actor",
+      "entryObjectLabel": "Entry Object",
+      "endpointLabel": "Endpoint",
+      "beforeLabel": "Before",
+      "afterLabel": "After",
+      "noTrails": "No field changes recorded for this action.",
+      "empty": "— empty —"
+    }
+  }
+}

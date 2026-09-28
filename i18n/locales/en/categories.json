@@ -1,0 +1,16 @@
+{
+  "categories": {
+    "title": "Categories",
+    "allDocuments": "All documents",
+    "createCategory": "New category",
+    "editCategory": "Edit category",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Deployment",
+    "underParent": "Will be created under \"{parent}\"",
+    "addChild": "Add subcategory",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "empty": "No categories yet.",
+    "uncategorised": "{count} not in any category"
+  }
+}

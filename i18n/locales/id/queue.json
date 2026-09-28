@@ -1,0 +1,29 @@
+{
+  "queue": {
+    "title": "Antrian",
+    "subtitle": "Antrian job latar belakang — pekerjaan yang di-dispatch, percobaan ulang dan kegagalan",
+    "registeredTitle": "Handler terdaftar",
+    "noHandlersRegistered": "Belum ada handler queue yang terdaftar.",
+    "statPending": "Menunggu",
+    "statRunning": "Berjalan",
+    "statFailed": "Gagal",
+    "statDelayed": "Tertunda",
+    "statOldestPending": "Menunggu Terlama",
+    "allQueuesPlaceholder": "Semua Antrian",
+    "retryAllFailed": "Ulangi Semua yang Gagal",
+    "purgeFinished": "Hapus yang Selesai",
+    "columnQueue": "Antrian",
+    "columnAttempts": "Percobaan",
+    "columnLastError": "Error Terakhir",
+    "columnDuration": "Durasi",
+    "actionRetry": "Ulangi",
+    "actionCancel": "Batalkan",
+    "attemptShort": "percobaan {n}/{max}",
+    "liveFeed": {
+      "title": "Live",
+      "connected": "terhubung",
+      "reconnecting": "menghubungkan ulang...",
+      "noJobsYet": "Belum ada aktivitas."
+    }
+  }
+}
