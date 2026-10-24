@@ -1,0 +1,28 @@
+{
+  "activityLogs": {
+    "title": "Log Aktivitas",
+    "subtitle": "Setiap permintaan yang dibuat ke API",
+    "pathPlaceholder": "Path...",
+    "allMethodsPlaceholder": "Semua Metode",
+    "statusCodePlaceholder": "Kode status...",
+    "allUsersPlaceholder": "Semua Pengguna",
+    "dateFromLabel": "Dari tanggal",
+    "dateToLabel": "Sampai tanggal",
+    "columnUser": "Pengguna",
+    "columnMethod": "Metode",
+    "columnPath": "Path",
+    "columnIp": "IP",
+    "liveFeed": {
+      "title": "Live",
+      "connected": "terhubung",
+      "reconnecting": "menghubungkan ulang...",
+      "noActivityYet": "Belum ada aktivitas.",
+      "anonymous": "Anonim"
+    },
+    "detailModal": {
+      "requestLabel": "Request",
+      "responseLabel": "Response",
+      "empty": "— kosong —"
+    }
+  }
+}

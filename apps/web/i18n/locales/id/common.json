@@ -1,0 +1,49 @@
+{
+  "common": {
+    "actions": "Aksi",
+    "add": "Tambah",
+    "edit": "Ubah",
+    "delete": "Hapus",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "confirm": "Konfirmasi",
+    "reset": "Atur Ulang",
+    "previous": "Sebelumnya",
+    "next": "Berikutnya",
+    "refresh": "Muat Ulang",
+    "loading": "Memuat...",
+    "search": "Cari...",
+    "no": "No.",
+    "createdAt": "Dibuat Pada",
+    "status": "Status",
+    "name": "Nama",
+    "deleteTitle": "Hapus",
+    "deleteConfirmMessage": "Apakah Anda yakin ingin menghapus data ini ?",
+    "emptyDataTitle": "Data Kosong",
+    "emptyDataMessage": "Data yang Anda cari tidak ditemukan.",
+    "showingEntries": "Menampilkan {from}–{to} dari {total} entri",
+    "redirecting": "Mengalihkan...",
+    "saving": "Menyimpan...",
+    "selectedCount": "{count} dipilih",
+    "all": "Semua",
+    "enabled": "Aktif",
+    "disabled": "Nonaktif",
+    "forbidden": {
+      "title": "Akses Ditolak",
+      "message": "Anda tidak punya izin untuk membuka halaman ini. Hubungi admin bila Anda merasa seharusnya punya akses.",
+      "back": "Kembali ke Beranda"
+    },
+    "notFound": {
+      "title": "Halaman ini tidak ditemukan.",
+      "message": "Mungkin alamatnya salah ketik, atau halamannya sudah dipindah.",
+      "back": "Kembali ke Beranda"
+    },
+    "serverError": {
+      "title": "Ada yang salah di sisi kami.",
+      "message": "Halaman gagal dimuat. Coba lagi sebentar — kalau terus terjadi, beri tahu admin.",
+      "back": "Kembali ke Beranda"
+    },
+    "logout": "Keluar"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "spaces": {
+    "title": "Space",
+    "subtitle": "Tempat pengetahuan ditata, satu space per tim atau domain",
+    "detailTitle": "Space",
+    "createSpace": "Space baru",
+    "editSpace": "Ubah space",
+    "nameLabel": "Nama",
+    "namePlaceholder": "mis. Engineering Handbook",
+    "descriptionLabel": "Deskripsi",
+    "descriptionPlaceholder": "Apa yang masuk ke space ini?",
+    "iconLabel": "Ikon",
+    "iconPlaceholder": "Pilih ikon…",
+    "iconHint": "Cari ikon Lucide. Kosongkan untuk bawaan.",
+    "searchPlaceholder": "Cari space",
+    "showArchived": "Diarsipkan",
+    "archived": "Diarsipkan",
+    "archive": "Arsipkan",
+    "archiveTitle": "Arsipkan space ini?",
+    "archiveConfirm": "\"{space}\" akan disembunyikan dari daftar pilihan.",
+    "archiveHint": "Dokumennya tetap bisa dibaca — space tidak pernah dihapus, karena menghapusnya akan ikut membawa dokumennya.",
+    "noDescription": "Tanpa deskripsi",
+    "openSpace": "Buka space",
+    "empty": "Belum ada space.",
+    "unarchive": "Kembalikan dari arsip",
+    "protectionLabel": "Level proteksi",
+    "protectionPlaceholder": "Pilih level",
+    "protectionHint": "Default yang diwarisi setiap dokumen di space ini, kecuali dokumennya punya pengaturan sendiri."
+  }
+}

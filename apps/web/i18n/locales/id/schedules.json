@@ -1,0 +1,15 @@
+{
+  "schedules": {
+    "title": "Jadwal",
+    "subtitle": "Jadwal cron untuk setiap background job yang terdaftar",
+    "columnCron": "Ekspresi Cron",
+    "columnEnabled": "Aktif",
+    "columnNextRun": "Jalan Berikutnya",
+    "columnLastRun": "Terakhir Jalan",
+    "actionRunNow": "Jalankan Sekarang",
+    "editSchedule": "Edit Jadwal: {name}",
+    "fieldCronExpression": "Ekspresi Cron",
+    "fieldEnabled": "Aktif",
+    "cronHint": "Format cron 5 kolom standar (menit jam tanggal bulan hari), contoh \"*/5 * * * *\"."
+  }
+}

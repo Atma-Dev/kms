@@ -1,0 +1,16 @@
+{
+  "tags": {
+    "title": "Tags",
+    "subtitle": "The vocabulary documents are labelled with",
+    "searchPlaceholder": "Search tags",
+    "newPlaceholder": "New tag name",
+    "add": "Add",
+    "empty": "No tags yet.",
+    "documentCount": "{count} documents",
+    "deleteTitle": "Delete this tag?",
+    "deleteConfirm": "\"{tag}\" will be removed from {count} documents. The documents themselves are not touched.",
+    "aboutTitle": "About tags",
+    "aboutBody": "Anyone who can edit a document can tag it, and a name nobody has used becomes a tag — the vocabulary is open. This page is for tidying it up afterwards.",
+    "rename": "Rename"
+  }
+}

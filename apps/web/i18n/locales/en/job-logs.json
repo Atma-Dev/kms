@@ -1,0 +1,31 @@
+{
+  "jobLogs": {
+    "title": "Job Logs",
+    "subtitle": "Run history for scheduled and queue jobs",
+    "registeredTitle": "Registered jobs",
+    "everyInterval": "every {interval}",
+    "allTypesPlaceholder": "All Types",
+    "allJobsPlaceholder": "All Jobs",
+    "columnType": "Type",
+    "columnName": "Job",
+    "columnMessage": "Message",
+    "columnStartedAt": "Started At",
+    "columnFinishedAt": "Finished At",
+    "statTotal": "Total Runs",
+    "statSuccessRate": "Success Rate",
+    "statSuccess": "Success",
+    "statFailed": "Failed",
+    "statSkipped": "Skipped",
+    "statAvgDuration": "Avg Duration",
+    "trendTitle": "Run Trend",
+    "range24h": "24h",
+    "range7d": "7d",
+    "range30d": "30d",
+    "liveFeed": {
+      "title": "Live",
+      "connected": "connected",
+      "reconnecting": "reconnecting...",
+      "noRunsYet": "No runs yet."
+    }
+  }
+}

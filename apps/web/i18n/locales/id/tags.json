@@ -1,0 +1,16 @@
+{
+  "tags": {
+    "title": "Tag",
+    "subtitle": "Kosakata yang dipakai melabeli dokumen",
+    "searchPlaceholder": "Cari tag",
+    "newPlaceholder": "Nama tag baru",
+    "add": "Tambah",
+    "empty": "Belum ada tag.",
+    "documentCount": "{count} dokumen",
+    "deleteTitle": "Hapus tag ini?",
+    "deleteConfirm": "\"{tag}\" akan dilepas dari {count} dokumen. Dokumennya sendiri tidak terpengaruh.",
+    "aboutTitle": "Tentang tag",
+    "aboutBody": "Siapa pun yang bisa mengubah dokumen bisa menandainya, dan nama yang belum pernah dipakai otomatis jadi tag — kosakatanya terbuka. Halaman ini untuk merapikannya.",
+    "rename": "Ubah nama"
+  }
+}

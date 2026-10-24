@@ -1,0 +1,10 @@
+{
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Everything sent to you",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications yet.",
+    "today": "Today",
+    "yesterday": "Yesterday"
+  }
+}

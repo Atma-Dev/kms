@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "groups": {
+      "dashboard": "DASHBOARD",
+      "admin": "ADMIN",
+      "knowledge": "KNOWLEDGE"
+    },
+    "items": {
+      "home": "Home",
+      "account": "Account",
+      "m2mClients": "M2M Clients",
+      "activityLogs": "Activity Logs",
+      "audits": "Audits",
+      "system": "System",
+      "jobsDashboard": "Jobs Dashboard",
+      "jobLogs": "Job Logs",
+      "queue": "Queue",
+      "schedules": "Schedules",
+      "search": "Search",
+      "spaces": "Spaces",
+      "tags": "Tags"
+    },
+    "language": "Language",
+    "languageEnglish": "English",
+    "languageIndonesian": "Bahasa Indonesia"
+  }
+}

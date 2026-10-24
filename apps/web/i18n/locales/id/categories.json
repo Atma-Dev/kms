@@ -1,0 +1,16 @@
+{
+  "categories": {
+    "title": "Kategori",
+    "allDocuments": "Semua dokumen",
+    "createCategory": "Kategori baru",
+    "editCategory": "Ubah kategori",
+    "nameLabel": "Nama",
+    "namePlaceholder": "mis. Deployment",
+    "underParent": "Akan dibuat di bawah \"{parent}\"",
+    "addChild": "Tambah subkategori",
+    "moveUp": "Naikkan",
+    "moveDown": "Turunkan",
+    "empty": "Belum ada kategori.",
+    "uncategorised": "{count} tanpa kategori"
+  }
+}

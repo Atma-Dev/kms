@@ -1,0 +1,45 @@
+image: ubuntu:latest
+
+stages:
+  # - deploy-prod   # prod server belum disetup
+  - deploy-dev
+
+.deploy:
+  allow_failure: false
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - ssh-add <(echo "$PRIVKEY")
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH && git checkout . && git fetch && git checkout $CI_COMMIT_REF_NAME && git pull origin $CI_COMMIT_REF_NAME"
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH && docker compose build web"
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH && docker compose up -d --force-recreate --remove-orphans"
+
+deploy_dev:
+  stage: deploy-dev
+  extends: .deploy
+  tags:
+    - cid-stg
+  only:
+    - develop
+    - devops-cicd
+  variables:
+    PRIVKEY: "${KEY_DEV_1}"
+    SERVER_IP: "${IP_DEV_1}"
+    DEPLOYMENT_PATH: "/deployment/web-kms"
+
+# prod belum disetup, aktifkan lagi setelah server siap
+# deploy_prod:
+#   stage: deploy-prod
+#   extends: .deploy
+#   tags:
+#     - cid-stg
+#   only:
+#     - main
+#     - devops-cicd-prod
+#   variables:
+#     PRIVKEY: "${KEY_CID_PROD_1}"
+#     SERVER_IP: "${IP_CID_PROD_1}"
+#     DEPLOYMENT_PATH: "/deployment/web-kms"
