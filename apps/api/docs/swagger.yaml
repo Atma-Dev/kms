@@ -1,0 +1,4745 @@
+basePath: /api
+definitions:
+  activitylog.Resource:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      method:
+        type: string
+      path:
+        type: string
+      request_body:
+        type: string
+      response_body:
+        type: string
+      status_code:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/user.Resource'
+    type: object
+  attachment.AttachmentResource:
+    properties:
+      created_at:
+        type: string
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      file_type:
+        type: string
+      id:
+        type: string
+      uploaded_by:
+        type: string
+      url:
+        description: |-
+          URL is the only way to reach the bytes. file_path is never serialised:
+          the store is not a static mount, and a path would suggest it is.
+        type: string
+    type: object
+  attachment.InlineImageResource:
+    properties:
+      url:
+        type: string
+    type: object
+  audit.Resource:
+    properties:
+      action:
+        type: string
+      actor_email:
+        type: string
+      actor_id:
+        type: string
+      actor_name:
+        type: string
+      actor_phone:
+        type: string
+      actor_table:
+        type: string
+      additional:
+        items:
+          type: integer
+        type: array
+      app_name:
+        type: string
+      created_at:
+        type: string
+      endpoint:
+        type: string
+      entry_object_id:
+        type: string
+      entry_object_table:
+        type: string
+      id:
+        type: string
+      ip_address:
+        type: string
+      message:
+        type: string
+      method:
+        type: string
+      tag:
+        items:
+          type: integer
+        type: array
+      trails:
+        items:
+          $ref: '#/definitions/audit.TrailResource'
+        type: array
+      user_agent:
+        type: string
+    type: object
+  audit.TrailResource:
+    properties:
+      additional:
+        items:
+          type: integer
+        type: array
+      after:
+        items:
+          type: integer
+        type: array
+      before:
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      object_id:
+        type: string
+      object_table:
+        type: string
+      tag:
+        items:
+          type: integer
+        type: array
+    type: object
+  auth.AuthenticateResource:
+    properties:
+      active_company_id: {}
+      email:
+        type: string
+      first_name:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      roles:
+        items: {}
+        type: array
+      tokens:
+        properties:
+          access_token:
+            type: string
+          refresh_token:
+            type: string
+        type: object
+    type: object
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  category.CategoryResource:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/category.CategoryResource'
+        type: array
+      created_at:
+        type: string
+      document_count:
+        description: |-
+          DocumentCount includes everything in the subtree, because that is what
+          clicking this category lists. Zero on the plain create/update responses,
+          which do not count — only the tree endpoint fills it.
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      order:
+        type: integer
+      parent_id:
+        type: string
+      slug:
+        type: string
+      space_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  category.CategoryTreeResponse:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/category.CategoryResource'
+        type: array
+      total_document_count:
+        description: TotalDocumentCount backs the "all documents" row above the tree.
+        type: integer
+      uncategorised_count:
+        description: |-
+          UncategorisedCount is documents with no category. They are reachable
+          through "all documents" and nowhere else, so the number is worth showing
+          rather than leaving them to be discovered by subtraction.
+        type: integer
+    type: object
+  category.ReorderCategoriesRequest:
+    properties:
+      ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      parent_id:
+        type: string
+    required:
+    - ids
+    type: object
+  category.StoreCategoryRequest:
+    properties:
+      name:
+        maxLength: 255
+        type: string
+      parent_id:
+        type: string
+    required:
+    - name
+    type: object
+  category.UpdateCategoryRequest:
+    properties:
+      name:
+        maxLength: 255
+        type: string
+      parent_id:
+        type: string
+    required:
+    - name
+    type: object
+  document.AccessLevel:
+    enum:
+    - view
+    - edit
+    - manage
+    type: string
+    x-enum-varnames:
+    - AccessView
+    - AccessEdit
+    - AccessManage
+  document.AccessResource:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      permission:
+        $ref: '#/definitions/document.AccessLevel'
+      subject_id:
+        type: string
+      subject_type:
+        $ref: '#/definitions/document.SubjectType'
+    type: object
+  document.Action:
+    enum:
+    - submit-review
+    - approve
+    - reject
+    - publish
+    - unpublish
+    - archive
+    - restore
+    type: string
+    x-enum-varnames:
+    - ActionSubmitReview
+    - ActionApprove
+    - ActionReject
+    - ActionPublish
+    - ActionUnpublish
+    - ActionArchive
+    - ActionRestore
+  document.DiffLine:
+    properties:
+      from_line:
+        description: |-
+          FromLine / ToLine are 1-based, and nil on the side the line is absent
+          from.
+        type: integer
+      op:
+        $ref: '#/definitions/document.Op'
+      text:
+        type: string
+      to_line:
+        type: integer
+    type: object
+  document.DocumentDetailResource:
+    properties:
+      author_id:
+        type: string
+      available_actions:
+        description: |-
+          AvailableActions is what this caller may do to this document right now —
+          the legal transitions from its status, filtered by what they hold. The
+          client renders exactly these buttons instead of re-deriving the rules
+          and drifting from them.
+        items:
+          $ref: '#/definitions/document.Action'
+        type: array
+      can_edit:
+        type: boolean
+      category_id:
+        type: string
+      content:
+        items:
+          type: integer
+        type: array
+      created_at:
+        type: string
+      current_version_id:
+        type: string
+      excerpt:
+        type: string
+      id:
+        type: string
+      is_pinned:
+        type: boolean
+      is_restricted:
+        description: |-
+          IsRestricted says the document carries access grants, so the reader is
+          looking at it because they are named on it. The client shows a lock; it
+          never has to work out who is on the list, which is gated separately.
+        type: boolean
+      last_editor_id:
+        type: string
+      published_at:
+        type: string
+      slug:
+        type: string
+      space_id:
+        type: string
+      status:
+        $ref: '#/definitions/document.Status'
+      tags:
+        items:
+          $ref: '#/definitions/tag.TagResource'
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      view_count:
+        type: integer
+    type: object
+  document.DocumentResource:
+    properties:
+      author_id:
+        type: string
+      category_id:
+        type: string
+      created_at:
+        type: string
+      excerpt:
+        type: string
+      id:
+        type: string
+      is_pinned:
+        type: boolean
+      published_at:
+        type: string
+      slug:
+        type: string
+      space_id:
+        type: string
+      status:
+        $ref: '#/definitions/document.Status'
+      title:
+        type: string
+      updated_at:
+        type: string
+      view_count:
+        type: integer
+    type: object
+  document.Op:
+    enum:
+    - equal
+    - add
+    - remove
+    type: string
+    x-enum-varnames:
+    - OpEqual
+    - OpAdd
+    - OpRemove
+  document.PinDocumentRequest:
+    properties:
+      is_pinned:
+        type: boolean
+    required:
+    - is_pinned
+    type: object
+  document.RollbackRequest:
+    properties:
+      change_note:
+        maxLength: 500
+        type: string
+    type: object
+  document.Status:
+    enum:
+    - draft
+    - in_review
+    - published
+    - archived
+    type: string
+    x-enum-varnames:
+    - StatusDraft
+    - StatusInReview
+    - StatusPublished
+    - StatusArchived
+  document.StoreAccessRequest:
+    properties:
+      permission:
+        allOf:
+        - $ref: '#/definitions/document.AccessLevel'
+        enum:
+        - view
+        - edit
+        - manage
+      subject_id:
+        type: string
+      subject_type:
+        allOf:
+        - $ref: '#/definitions/document.SubjectType'
+        enum:
+        - user
+        - role
+    required:
+    - permission
+    - subject_id
+    - subject_type
+    type: object
+  document.StoreDocumentRequest:
+    properties:
+      category_id:
+        type: string
+      content:
+        items:
+          type: integer
+        type: array
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  document.SubjectType:
+    enum:
+    - user
+    - role
+    type: string
+    x-enum-varnames:
+    - SubjectUser
+    - SubjectRole
+  document.TransitionRequest:
+    properties:
+      reason:
+        maxLength: 500
+        type: string
+    type: object
+  document.UpdateDocumentRequest:
+    properties:
+      category_id:
+        type: string
+      change_note:
+        maxLength: 500
+        type: string
+      content:
+        items:
+          type: integer
+        type: array
+      is_pinned:
+        type: boolean
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  document.VersionDetailResource:
+    properties:
+      change_note:
+        type: string
+      content:
+        items:
+          type: integer
+        type: array
+      created_at:
+        type: string
+      editor_id:
+        type: string
+      id:
+        type: string
+      version_number:
+        type: integer
+    type: object
+  document.VersionResource:
+    properties:
+      change_note:
+        type: string
+      created_at:
+        type: string
+      editor_id:
+        type: string
+      id:
+        type: string
+      version_number:
+        type: integer
+    type: object
+  enums.ResponseCode:
+    enum:
+    - SUCCESS
+    - CREATED
+    - ERR_NOT_FOUND
+    - ERR_ROUTE_NOT_FOUND
+    - ERR_ACTION_UNAUTHORIZED
+    - ERR_INVALID_ACTION
+    - ERR_INVALID_STATUS
+    - ERR_AUTHENTICATION
+    - ERR_INVALID_QUERY_PARAMETER
+    - ERR_INTERNAL_SERVER_ERROR
+    - ERR_BAD_REQUEST
+    type: string
+    x-enum-varnames:
+    - SUCCESS
+    - CREATED
+    - ERR_NOT_FOUND
+    - ERR_ROUTE_NOT_FOUND
+    - ERR_ACTION_UNAUTHORIZED
+    - ERR_INVALID_ACTION
+    - ERR_INVALID_STATUS
+    - ERR_AUTHENTICATION
+    - ERR_INVALID_QUERY_PARAMETER
+    - ERR_INTERNAL_SERVER_ERROR
+    - ERR_BAD_REQUEST
+  joblog.Definition:
+    properties:
+      interval:
+        type: string
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/joblog.Type'
+    type: object
+  joblog.JobStat:
+    properties:
+      avg_duration_ms:
+        type: integer
+      f_last_run_at:
+        type: string
+      failed:
+        type: integer
+      last_run_at:
+        type: string
+      last_status:
+        $ref: '#/definitions/joblog.Status'
+      max_duration_ms:
+        type: integer
+      name:
+        type: string
+      skipped:
+        type: integer
+      success:
+        type: integer
+      total:
+        type: integer
+      type:
+        $ref: '#/definitions/joblog.Type'
+    type: object
+  joblog.Resource:
+    properties:
+      finished_at:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      started_at:
+        type: string
+      status:
+        $ref: '#/definitions/joblog.Status'
+      type:
+        $ref: '#/definitions/joblog.Type'
+    type: object
+  joblog.Stats:
+    properties:
+      by_job:
+        items:
+          $ref: '#/definitions/joblog.JobStat'
+        type: array
+      summary:
+        $ref: '#/definitions/joblog.Summary'
+      trend:
+        items:
+          $ref: '#/definitions/joblog.TrendPoint'
+        type: array
+    type: object
+  joblog.Status:
+    enum:
+    - success
+    - failed
+    - skipped
+    type: string
+    x-enum-varnames:
+    - StatusSuccess
+    - StatusFailed
+    - StatusSkipped
+  joblog.Summary:
+    properties:
+      avg_duration_ms:
+        type: integer
+      failed:
+        type: integer
+      max_duration_ms:
+        type: integer
+      skipped:
+        type: integer
+      success:
+        type: integer
+      success_rate:
+        type: number
+      total:
+        type: integer
+    type: object
+  joblog.TrendPoint:
+    properties:
+      bucket:
+        type: string
+      failed:
+        type: integer
+      skipped:
+        type: integer
+      success:
+        type: integer
+    type: object
+  joblog.Type:
+    enum:
+    - schedule
+    - queue
+    type: string
+    x-enum-varnames:
+    - TypeSchedule
+    - TypeQueue
+  lookup.Option:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  m2mclient.M2MClientCreatedResource:
+    properties:
+      client:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      revoked_at:
+        type: string
+      scope:
+        items:
+          type: string
+        type: array
+      secret:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  m2mclient.M2MClientResource:
+    properties:
+      client:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      revoked_at:
+        type: string
+      scope:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+    type: object
+  m2mclient.StoreM2MClientRequest:
+    properties:
+      client:
+        maxLength: 255
+        type: string
+      scope:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - client
+    - scope
+    type: object
+  m2mclient.UpdateM2MClientRequest:
+    properties:
+      client:
+        maxLength: 255
+        type: string
+      scope:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - client
+    - scope
+    type: object
+  notification.Resource:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      data:
+        items:
+          type: integer
+        type: array
+      f_created_at:
+        type: string
+      id:
+        type: string
+      is_read:
+        type: boolean
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  queue.NameCount:
+    properties:
+      count:
+        type: integer
+      failed:
+        type: integer
+      name:
+        type: string
+      pending:
+        type: integer
+      running:
+        type: integer
+      success:
+        type: integer
+    type: object
+  queue.PurgeRequest:
+    properties:
+      statuses:
+        items:
+          $ref: '#/definitions/queue.Status'
+        minItems: 1
+        type: array
+    required:
+    - statuses
+    type: object
+  queue.QueueCount:
+    properties:
+      count:
+        type: integer
+      queue:
+        type: string
+    type: object
+  queue.Resource:
+    properties:
+      attempts:
+        type: integer
+      available_at:
+        type: string
+      duration_ms:
+        type: integer
+      finished_at:
+        type: string
+      id:
+        type: string
+      last_error:
+        type: string
+      max_attempts:
+        type: integer
+      name:
+        type: string
+      payload:
+        items:
+          type: integer
+        type: array
+      payload_redacted:
+        type: boolean
+      queue:
+        type: string
+      started_at:
+        type: string
+      status:
+        $ref: '#/definitions/queue.Status'
+    type: object
+  queue.RetryFailedRequest:
+    properties:
+      name:
+        maxLength: 100
+        type: string
+    type: object
+  queue.Stats:
+    properties:
+      by_name:
+        items:
+          $ref: '#/definitions/queue.NameCount'
+        type: array
+      by_queue:
+        items:
+          $ref: '#/definitions/queue.QueueCount'
+        type: array
+      by_status:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      delayed_count:
+        type: integer
+      oldest_pending_age_seconds:
+        type: integer
+      queues:
+        items:
+          type: string
+        type: array
+      registered_jobs:
+        items:
+          type: string
+        type: array
+    type: object
+  queue.Status:
+    enum:
+    - pending
+    - running
+    - success
+    - failed
+    - canceled
+    type: string
+    x-enum-varnames:
+    - StatusPending
+    - StatusRunning
+    - StatusSuccess
+    - StatusFailed
+    - StatusCanceled
+  rbac.PermissionResource:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      feature_group:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  rbac.RoleResource:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      is_mutable:
+        type: boolean
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/rbac.PermissionResource'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  rbac.StoreRoleRequest:
+    properties:
+      name:
+        type: string
+      permission_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    type: object
+  rbac.UpdateRoleRequest:
+    properties:
+      name:
+        type: string
+      permission_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    type: object
+  scheduler.Resource:
+    properties:
+      cron_expression:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      last_duration_ms:
+        type: integer
+      last_message:
+        type: string
+      last_run_at:
+        type: string
+      last_status:
+        type: string
+      name:
+        type: string
+      next_run_at:
+        type: string
+    type: object
+  scheduler.UpdateScheduleRequest:
+    properties:
+      cron_expression:
+        maxLength: 100
+        type: string
+      enabled:
+        type: boolean
+    required:
+    - cron_expression
+    type: object
+  search.HistoryResource:
+    properties:
+      id:
+        type: string
+      query:
+        type: string
+      searched_at:
+        description: |-
+          SearchedAt is updated_at under a name that says what it means here: the
+          last time this query was run, which is what the list is ordered by.
+        type: string
+    type: object
+  search.ResultResource:
+    properties:
+      author_id:
+        type: string
+      category_id:
+        type: string
+      created_at:
+        type: string
+      excerpt:
+        type: string
+      id:
+        type: string
+      is_pinned:
+        type: boolean
+      published_at:
+        type: string
+      slug:
+        type: string
+      snippet:
+        type: string
+      space_id:
+        type: string
+      status:
+        $ref: '#/definitions/document.Status'
+      title:
+        type: string
+      updated_at:
+        type: string
+      view_count:
+        type: integer
+    type: object
+  search.SuggestionResource:
+    properties:
+      id:
+        type: string
+      slug:
+        type: string
+      space_id:
+        type: string
+      title:
+        type: string
+    type: object
+  space.SpaceResource:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      description:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      is_archived:
+        type: boolean
+      name:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  space.StoreSpaceRequest:
+    properties:
+      description:
+        maxLength: 2000
+        type: string
+      icon:
+        maxLength: 64
+        type: string
+      name:
+        maxLength: 255
+        type: string
+    required:
+    - name
+    type: object
+  space.UpdateSpaceRequest:
+    properties:
+      description:
+        maxLength: 2000
+        type: string
+      icon:
+        maxLength: 64
+        type: string
+      is_archived:
+        type: boolean
+      name:
+        maxLength: 255
+        type: string
+    required:
+    - name
+    type: object
+  tag.StoreTagRequest:
+    properties:
+      name:
+        maxLength: 64
+        type: string
+    required:
+    - name
+    type: object
+  tag.SyncDocumentTagsRequest:
+    properties:
+      names:
+        items:
+          type: string
+        type: array
+    type: object
+  tag.TagResource:
+    properties:
+      created_at:
+        type: string
+      document_count:
+        description: |-
+          DocumentCount is only filled by the master list — the tag chips on a
+          document have no use for it, and counting on every read would cost a
+          join the document page never needs.
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  tag.UpdateTagRequest:
+    properties:
+      name:
+        maxLength: 64
+        type: string
+    required:
+    - name
+    type: object
+  user.Resource:
+    properties:
+      created_at:
+        type: string
+      deactivated_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      marketing_id:
+        type: string
+      membership_status:
+        description: Whether the account is allowed in at all.
+        type: string
+      permissions:
+        description: |-
+          Flattened across every role, deduped. Requires Roles.Permissions to be
+          preloaded (AuthMiddleware does this) — nil otherwise, same as Roles
+          would be empty.
+        items:
+          type: string
+        type: array
+      roles:
+        items:
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+          type: object
+        type: array
+    type: object
+  user.UpdatePasswordRequest:
+    properties:
+      current_password:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      password_confirmation:
+        description: |-
+          eqfield keeps the "typed it twice" check server-side too — the SPA does
+          it as well, but a mismatched pair reaching here would silently set the
+          password to whichever field the API happened to read.
+        type: string
+    required:
+    - current_password
+    - password
+    - password_confirmation
+    type: object
+  user.UpdateRequest:
+    properties:
+      marketing_id:
+        type: string
+      role_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  utils.CacheEntry:
+    properties:
+      count:
+        type: integer
+      expires_in_seconds:
+        type: integer
+      key:
+        type: string
+    type: object
+  utils.HTTPError:
+    properties:
+      code:
+        $ref: '#/definitions/enums.ResponseCode'
+      debug:
+        description: |-
+          Debug carries the cause when APP_DEBUG is on. omitempty keeps production
+          responses byte identical to what they were before the flag existed.
+        type: string
+      errors:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      message:
+        type: string
+      payload:
+        $ref: '#/definitions/utils.Payload'
+      status_code:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  utils.HTTPResponse:
+    properties:
+      code:
+        $ref: '#/definitions/enums.ResponseCode'
+      message:
+        type: string
+      payload:
+        $ref: '#/definitions/utils.Payload'
+      status_code:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  utils.PaginationMeta:
+    properties:
+      current_page:
+        type: integer
+      from:
+        type: integer
+      last_page:
+        type: integer
+      path:
+        type: string
+      per_page:
+        type: integer
+      to:
+        type: integer
+      total:
+        type: integer
+    type: object
+  utils.Payload:
+    properties:
+      data: {}
+      meta:
+        $ref: '#/definitions/utils.PaginationMeta'
+    type: object
+info:
+  contact: {}
+  description: Atma KMS API. Owns its accounts (email + password, with Google login
+    as an alternative), issues and validates its own JWT, and serves the RBAC and
+    operational resources behind them.
+  title: Atma KMS API
+  version: "1.0"
+paths:
+  /attachments/{id}:
+    delete:
+      parameters:
+      - description: Attachment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete an attachment
+      tags:
+      - attachments
+  /attachments/{id}/download:
+    get:
+      description: Streams the file after checking the caller may see the document
+        it belongs to. The store is deliberately not a static folder — a static mount
+        would hand every file to anyone who guessed a path, and FR-9's restricted
+        documents would be restricted in name only.
+      parameters:
+      - description: Attachment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Download an attachment
+      tags:
+      - attachments
+  /auth/dev-login:
+    get:
+      description: Issues a token pair for the given email with no password. Only
+        enabled when APP_ENV=local; returns 404 otherwise.
+      parameters:
+      - description: User email
+        in: query
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "404":
+          description: not local env, or user not found
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+      summary: Dev-only login bypass
+      tags:
+      - auth
+  /auth/google/callback:
+    get:
+      description: 'Backend-only callback: exchanges the authorization code for a
+        Google token, resolves the local user by email, issues a Go JWT pair, and
+        redirects to FRONTEND_URL/auth/callback with the access token (or an error
+        reason). Never creates a user, and a Google account only ever proves an email
+        — it does not itself grant access. See completeLogin.'
+      parameters:
+      - description: authorization code from Google
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: state from GoogleRedirect, echoed back by Google
+        in: query
+        name: state
+        required: true
+        type: string
+      responses:
+        "302":
+          description: redirect to FRONTEND_URL/auth/callback
+          schema:
+            type: string
+      summary: Google login callback
+      tags:
+      - auth
+  /auth/google/redirect:
+    get:
+      description: Redirects the browser to Google's consent screen. This is a confidential
+        client (client secret, no PKCE) — the standard server-side "Sign in with Google"
+        flow.
+      responses:
+        "302":
+          description: redirect to Google
+          schema:
+            type: string
+      summary: Start Google login
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Issues a JWT pair for a local account. For a web client both tokens
+        also land in httpOnly cookies (access_token_verifier + refresh_token); a non-web
+        client gets the refresh token in the body instead. A wrong email and a wrong
+        password return the same 401 on purpose — telling them apart would let anyone
+        enumerate registered addresses.
+      parameters:
+      - description: Credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      properties:
+                        access_token:
+                          type: string
+                        refresh_token:
+                          type: string
+                      type: object
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      summary: Log in with email and password
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Revokes the caller's current access token (and its paired refresh
+        token) via the JWT blacklist.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      description: Rotates the access/refresh token pair. Web clients send the refresh
+        token via the httpOnly `refresh_token` cookie; mobile clients send it as a
+        Bearer token instead (no cookie jar).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/auth.AuthenticateResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Refresh access token
+      tags:
+      - auth
+  /auth/ws-token:
+    post:
+      description: Issues a short-lived token scoped to WebSocket routes only (/notifications/ws,
+        /management/audits/ws) — it carries no cookie requirement, so it does not
+        depend on access_token_verifier crossing a different subdomain during the
+        WS handshake, which browsers do not reliably do. AuthMiddleware refuses this
+        token on every other route; it is otherwise usable nowhere else. Requires
+        the same auth as any protected route (Bearer + access_token_verifier cookie
+        for web clients).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      properties:
+                        access_token:
+                          type: string
+                      type: object
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Issue a WebSocket-only access token
+      tags:
+      - auth
+  /categories/{id}:
+    delete:
+      description: Its subtree goes with it. Documents filed under it are kept and
+        left uncategorised — a document outlives the shelf it was on.
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete a category
+      tags:
+      - categories
+    put:
+      consumes:
+      - application/json
+      description: 'A full replace: an absent parent_id makes it a root category.
+        Moving it puts it last among its new siblings.'
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Category
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/category.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/category.CategoryResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update or move a category
+      tags:
+      - categories
+  /documents/{id}:
+    delete:
+      description: 'Soft delete: the row stays so the audit trail keeps pointing at
+        something real.'
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete a document
+      tags:
+      - documents
+    get:
+      description: Counts the read at most once per hour per reader, and only for
+        published documents. The response carries `available_actions` — the lifecycle
+        moves this caller may make right now.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.DocumentDetailResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get a document with its content
+      tags:
+      - documents
+    put:
+      consumes:
+      - application/json
+      description: On a document that has ever been published, the content being replaced
+        is snapshotted as a new version first — in the same transaction as the write.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Document
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/document.UpdateDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.DocumentDetailResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update a document
+      tags:
+      - documents
+  /documents/{id}/{action}:
+    post:
+      consumes:
+      - application/json
+      description: 'One handler per action, bound in routes/route.go: submit-review,
+        approve, reject, publish, unpublish, archive, restore. An illegal move answers
+        422 naming both statuses. `reason` is required on reject.'
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reason, required when rejecting
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/document.TransitionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.DocumentDetailResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Move a document through its lifecycle
+      tags:
+      - documents
+  /documents/{id}/access:
+    get:
+      description: Empty means the document is unrestricted and ordinary permissions
+        apply. Any rows mean it is restricted to the subjects listed (FR-9).
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/document.AccessResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List a document's access grants
+      tags:
+      - documents
+    post:
+      consumes:
+      - application/json
+      description: The first grant narrows the document to whoever is named; it never
+        widens one. Holders of documents.access.manage are never locked out.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Grant
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/document.StoreAccessRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.AccessResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Restrict a document to a user or role
+      tags:
+      - documents
+  /documents/{id}/access/{accessId}:
+    delete:
+      description: Removing the last grant makes the document unrestricted again.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Access grant ID
+        in: path
+        name: accessId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Revoke one access grant
+      tags:
+      - documents
+  /documents/{id}/attachments:
+    get:
+      description: Downloadable files only — images embedded in the content are already
+        visible there.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/attachment.AttachmentResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List a document's attachments
+      tags:
+      - attachments
+    post:
+      consumes:
+      - multipart/form-data
+      description: multipart/form-data, field `file`. Type is taken from the file's
+        own bytes, not the browser's Content-Type header. Answers to the document's
+        edit rule.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: File
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/attachment.AttachmentResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Attach a file to a document
+      tags:
+      - attachments
+  /documents/{id}/pin:
+    patch:
+      consumes:
+      - application/json
+      description: Pinned documents sort first in their space whatever order is chosen.
+        Answers to the document's edit rule, and carries no content — flipping the
+        flag cannot overwrite someone else's edit.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Pin state
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/document.PinDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.DocumentDetailResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Pin or unpin a document
+      tags:
+      - documents
+  /documents/{id}/related:
+    get:
+      description: 'The documents a reader of this one is most likely to want next
+        (FR-4): most shared tags first, same category as the tie-breaker. Published
+        documents in the same space only, filtered by what this caller may see.'
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/document.DocumentResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Related documents
+      tags:
+      - documents
+  /documents/{id}/tags:
+    post:
+      consumes:
+      - application/json
+      description: Takes the whole set by name; a name nobody has used becomes a tag
+        (FR-6). Answers to the document's edit rule, not to a tag permission — retagging
+        is an edit of the document.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag names
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/tag.SyncDocumentTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/tag.TagResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Replace a document's tags
+      tags:
+      - documents
+  /documents/{id}/undelete:
+    post:
+      description: 'Comes back as a draft even if it was published when deleted: putting
+        content back in front of readers without anyone looking at why it was deleted
+        is the one outcome nobody asked for.'
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.DocumentDetailResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Restore a deleted document
+      tags:
+      - documents
+  /documents/{id}/versions:
+    get:
+      description: Newest first, without content — the list is a sidebar of numbers
+        and notes.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/document.VersionResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List a document's versions
+      tags:
+      - documents
+  /documents/{id}/versions/{versionNumber}:
+    get:
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version number, as shown in the list
+        in: path
+        name: versionNumber
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.VersionDetailResource'
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get one version with its content
+      tags:
+      - documents
+  /documents/{id}/versions/{versionNumber}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: Snapshots the content it replaces first, so a rollback is itself
+        undoable.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version number to restore
+        in: path
+        name: versionNumber
+        required: true
+        type: integer
+      - description: Change note
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/document.RollbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.DocumentDetailResource'
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Roll a document back to an earlier version
+      tags:
+      - documents
+  /documents/{id}/versions/compare:
+    get:
+      description: Line-by-line over the visible text, not the raw JSON. Either side
+        may be `current` instead of a version number — snapshots are taken *before*
+        an overwrite, so the live content is not itself a version row.
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version number, or `current`
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: Version number, or `current`
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/document.DiffLine'
+                      type: array
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Diff two versions of a document
+      tags:
+      - documents
+  /lookups/{resource}:
+    get:
+      description: 'Backs a filter or form dropdown: id and name only. Each resource
+        is gated by its own lookups.* permission, deliberately separate from the *.show
+        permission of the underlying resource — seeing names in a dropdown is a smaller
+        capability than managing the records behind them.'
+      parameters:
+      - description: Space ID — required for the categories lookup
+        in: query
+        name: space_id
+        type: string
+      - description: Lookup resource
+        enum:
+        - users
+        - roles
+        - permissions
+        - spaces
+        - categories
+        - tags
+        in: path
+        name: resource
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/lookup.Option'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get select options for one resource
+      tags:
+      - lookups
+  /management/audits:
+    get:
+      description: Field-level change history (who changed what, from what to what).
+        Requires the management.audits.show permission.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Filter by entry object table, e.g. deposits
+        in: query
+        name: entry_object_table
+        type: string
+      - description: Filter by entry object id
+        in: query
+        name: entry_object_id
+        type: string
+      - description: Filter by actor id
+        in: query
+        name: actor_id
+        type: string
+      - description: Filter by action, e.g. UPDATE_DEPOSIT_STATUS
+        in: query
+        name: action
+        type: string
+      - description: Filter created_at >= this date (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter created_at <= this date (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/audit.Resource'
+                      type: array
+                    meta:
+                      $ref: '#/definitions/utils.PaginationMeta'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List audit trails
+      tags:
+      - management
+  /management/audits/ws:
+    get:
+      description: Upgrades to a WebSocket connection and pushes every new audit as
+        it's recorded — a live "something changed" feed, separate from the (manually
+        refreshed) list above. Requires the management.audits.show permission. The
+        JWT travels as ?token=... since a WebSocket handshake can't carry a custom
+        Authorization header.
+      parameters:
+      - description: Access token
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "101":
+          description: switching protocols
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      summary: Stream audits over WebSocket
+      tags:
+      - management
+  /management/cache:
+    delete:
+      description: Without `key`, drops everything — the same reach as sending the
+        process SIGHUP. With `key`, drops just that entry. Writes made through this
+        app already invalidate what they change, so this is for the one case that
+        cannot — another app writing a shared table (users, roles) directly.
+      parameters:
+      - description: Cache key to drop, e.g. lookup:areas. Omit to clear everything.
+        in: query
+        name: key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Clear the cache
+      tags:
+      - management
+    get:
+      description: Every live cache key with how many items it holds and how long
+        it has left. Expired keys are left out — they are already dead to the cache.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/utils.CacheEntry'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List what is cached
+      tags:
+      - management
+  /management/job-logs:
+    get:
+      description: Paginated run history for every scheduled/queue job. Requires the
+        management.job-logs.show permission.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Filter by type (schedule|queue)
+        in: query
+        name: type
+        type: string
+      - description: Filter by job name
+        in: query
+        name: name
+        type: string
+      - description: Filter by status (success|failed)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/joblog.Resource'
+                      type: array
+                    meta:
+                      $ref: '#/definitions/utils.PaginationMeta'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List job runs
+      tags:
+      - management
+  /management/job-logs/definitions:
+    get:
+      description: Static list of every scheduled/queue job this app runs, with its
+        interval. Requires the management.job-logs.show permission.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  items:
+                    $ref: '#/definitions/joblog.Definition'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List registered background jobs
+      tags:
+      - management
+  /management/job-logs/stats:
+    get:
+      description: Summary, trend and per-job rollup for scheduled/queue runs. Requires
+        the management.job-logs.show permission.
+      parameters:
+      - default: 24h
+        description: 24h|7d|30d
+        in: query
+        name: range
+        type: string
+      - description: Filter by type (schedule|queue)
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  $ref: '#/definitions/joblog.Stats'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Job log dashboard stats
+      tags:
+      - management
+  /management/job-logs/ws:
+    get:
+      description: Upgrades to a WebSocket connection and streams every new job log
+        row as it's recorded. Requires the management.job-logs.show permission. The
+        JWT travels as ?token=... since a WebSocket handshake can't carry a custom
+        Authorization header.
+      parameters:
+      - description: Access token
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "101":
+          description: switching protocols
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      summary: Stream job runs over WebSocket
+      tags:
+      - management
+  /management/m2m-clients:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/m2mclient.M2MClientResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List M2M clients
+      tags:
+      - management
+    post:
+      consumes:
+      - application/json
+      description: The response includes the plaintext secret once; it cannot be retrieved
+        again.
+      parameters:
+      - description: M2M client
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/m2mclient.StoreM2MClientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/m2mclient.M2MClientCreatedResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create an M2M client
+      tags:
+      - management
+  /management/m2m-clients/{id}:
+    delete:
+      parameters:
+      - description: M2M client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Revoke an M2M client
+      tags:
+      - management
+    get:
+      parameters:
+      - description: M2M client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/m2mclient.M2MClientResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get an M2M client
+      tags:
+      - management
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: M2M client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: M2M client
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/m2mclient.UpdateM2MClientRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/m2mclient.M2MClientResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update an M2M client
+      tags:
+      - management
+  /management/m2m-clients/{id}/regenerate-secret:
+    post:
+      description: Issues a new secret and invalidates the old one immediately. The
+        response includes the plaintext secret once; it cannot be retrieved again.
+        Refused on a revoked client.
+      parameters:
+      - description: M2M client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/m2mclient.M2MClientCreatedResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Regenerate an M2M client's secret
+      tags:
+      - management
+  /management/permissions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/rbac.PermissionResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List permissions
+      tags:
+      - management
+  /management/queue/jobs:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Statuses to purge (success|failed|canceled)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/queue.PurgeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    purged:
+                      type: integer
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete finished queue jobs
+      tags:
+      - management
+    get:
+      description: Paginated queue job list. Requires the management.queue.show permission.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Filter by queue name
+        in: query
+        name: queue
+        type: string
+      - description: Filter by job name
+        in: query
+        name: name
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/queue.Resource'
+                      type: array
+                    meta:
+                      $ref: '#/definitions/utils.PaginationMeta'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List queue jobs
+      tags:
+      - management
+  /management/queue/jobs/{id}/cancel:
+    post:
+      parameters:
+      - description: Queue job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/queue.Resource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Cancel a pending queue job
+      tags:
+      - management
+  /management/queue/jobs/{id}/retry:
+    post:
+      parameters:
+      - description: Queue job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/queue.Resource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Retry a finished queue job
+      tags:
+      - management
+  /management/queue/jobs/retry-failed:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Optionally narrow to one job name
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/queue.RetryFailedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    retried:
+                      type: integer
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Retry every failed queue job
+      tags:
+      - management
+  /management/queue/stats:
+    get:
+      description: Current counts by status/queue/name, delay backlog and oldest pending
+        job age. Requires the management.queue.show permission.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  $ref: '#/definitions/queue.Stats'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Queue depth and health
+      tags:
+      - management
+  /management/queue/ws:
+    get:
+      description: Upgrades to a WebSocket connection and streams every queue job
+        state transition (enqueue, claim, finish). Requires the management.queue.show
+        permission. The JWT travels as ?token=... since a WebSocket handshake can't
+        carry a custom Authorization header.
+      parameters:
+      - description: Access token
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "101":
+          description: switching protocols
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      summary: Stream queue job state over WebSocket
+      tags:
+      - management
+  /management/roles:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/rbac.RoleResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List roles
+      tags:
+      - management
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Role
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/rbac.StoreRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/rbac.RoleResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create a role
+      tags:
+      - management
+  /management/roles/{id}:
+    delete:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete a role
+      tags:
+      - management
+    get:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/rbac.RoleResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get a role
+      tags:
+      - management
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Role
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/rbac.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/rbac.RoleResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update a role
+      tags:
+      - management
+  /management/schedules:
+    get:
+      description: One row per registered background job, with its cron expression,
+        enabled state and last-run outcome. Requires the management.schedules.show
+        permission.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/scheduler.Resource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List scheduled jobs
+      tags:
+      - management
+  /management/schedules/{id}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Scheduled job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Schedule
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/scheduler.UpdateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/scheduler.Resource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update a scheduled job's cron expression / enabled state
+      tags:
+      - management
+  /management/schedules/{id}/run:
+    post:
+      description: Queues the job to run now, independent of its cron schedule. The
+        run itself happens asynchronously.
+      parameters:
+      - description: Scheduled job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/scheduler.Resource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Run a scheduled job immediately
+      tags:
+      - management
+  /management/users:
+    get:
+      description: The whole list, unpaginated — one row per employee, filtered in
+        the browser.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/user.Resource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - management
+  /management/users/{id}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/user.Resource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update a user's roles/marketing assignment
+      tags:
+      - management
+  /notifications:
+    get:
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/notification.Resource'
+                      type: array
+                    meta:
+                      $ref: '#/definitions/utils.PaginationMeta'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List the authenticated user's notifications
+      tags:
+      - notifications
+  /notifications/{id}/read:
+    patch:
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Mark one notification read
+      tags:
+      - notifications
+  /notifications/read-all:
+    patch:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Mark all of the authenticated user's notifications read
+      tags:
+      - notifications
+  /notifications/ws:
+    get:
+      description: Upgrades to a WebSocket connection and blocks until the client
+        disconnects. The JWT travels as ?token=... since a WebSocket handshake can't
+        carry a custom Authorization header.
+      parameters:
+      - description: Access token
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "101":
+          description: switching protocols
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      summary: Stream notifications over WebSocket
+      tags:
+      - notifications
+  /profiles/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/user.Resource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the authenticated user
+      tags:
+      - profile
+  /profiles/password:
+    patch:
+      consumes:
+      - application/json
+      description: 'Requires the current password alongside the new one — a session
+        token proves identity, not that whoever is at the keyboard knows the password
+        being replaced. No permission gates it: it only ever acts on the caller''s
+        own row.'
+      parameters:
+      - description: Current and new password
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Change the authenticated user's own password
+      tags:
+      - profile
+  /search:
+    get:
+      description: Full-text search over title and content (FR-1), filtered and sorted
+        (FR-2), and limited to what this caller may see (FR-3). Each result carries
+        a `snippet` with the matched words wrapped in `<mark>`. Relevance weights
+        a title match above a body match; with no `q` the list sorts by newest.
+      parameters:
+      - description: What to search for
+        in: query
+        name: q
+        type: string
+      - description: Filter by space
+        in: query
+        name: space_id
+        type: string
+      - description: Filter by category, including everything under it
+        in: query
+        name: category_id
+        type: string
+      - description: Filter by tag ID
+        in: query
+        name: tag
+        type: string
+      - description: Filter by author
+        in: query
+        name: author_id
+        type: string
+      - description: Updated on or after (2006-01-02)
+        in: query
+        name: from
+        type: string
+      - description: Updated on or before (2006-01-02)
+        in: query
+        name: to
+        type: string
+      - description: Ordering
+        enum:
+        - relevance
+        - newest
+        - popular
+        in: query
+        name: sort
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Rows per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/search.ResultResource'
+                      type: array
+                    meta:
+                      $ref: '#/definitions/utils.PaginationMeta'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Search documents
+      tags:
+      - search
+  /search/history:
+    get:
+      description: This caller's own last queries (FR-5), most recently searched first
+        — what the search box offers when it is focused and empty.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/search.HistoryResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Recent searches
+      tags:
+      - search
+  /search/history/{id}:
+    delete:
+      description: Removes one entry from this caller's own history. Scoped to them
+        — an id from somebody else's history is a 404.
+      parameters:
+      - description: History entry ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Forget one past search
+      tags:
+      - search
+  /search/suggest:
+    get:
+      description: Titles starting with what has been typed so far (FR-6), most read
+        first. A prefix match, not the full-text index — a dropdown completes the
+        word being typed rather than finding it anywhere.
+      parameters:
+      - description: What has been typed so far
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Limit to one space
+        in: query
+        name: space_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/search.SuggestionResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Autocomplete document titles
+      tags:
+      - search
+  /spaces:
+    get:
+      description: Archived spaces are left out unless `include_archived=1`.
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Rows per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Match on name
+        in: query
+        name: search
+        type: string
+      - description: 1 to include archived spaces
+        in: query
+        name: include_archived
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/space.SpaceResource'
+                      type: array
+                    meta:
+                      $ref: '#/definitions/utils.PaginationMeta'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List spaces
+      tags:
+      - spaces
+    post:
+      consumes:
+      - application/json
+      description: The slug is derived from the name, made unique with a -2, -3 suffix
+        on collision.
+      parameters:
+      - description: Space
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/space.StoreSpaceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/space.SpaceResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create a space
+      tags:
+      - spaces
+  /spaces/{spaceId}:
+    delete:
+      description: 'Archives rather than deletes: a space owns documents, and dropping
+        the row would take them with it.'
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/space.SpaceResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Archive a space
+      tags:
+      - spaces
+    get:
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/space.SpaceResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get a space
+      tags:
+      - spaces
+    put:
+      consumes:
+      - application/json
+      description: The slug only moves when the name does — links to a space that
+        is merely being re-described keep working.
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      - description: Space
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/space.UpdateSpaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/space.SpaceResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update a space
+      tags:
+      - spaces
+  /spaces/{spaceId}/categories:
+    get:
+      description: Nested to at most 3 levels, siblings in their stored order. One
+        flat query, assembled server-side — the client never walks the tree to fetch
+        it. Each node carries `document_count` for its whole subtree, which is what
+        clicking it lists; documents FR-9 hides from this caller are left out of every
+        count.
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/category.CategoryTreeResponse'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List a space's categories as a tree
+      tags:
+      - categories
+    post:
+      consumes:
+      - application/json
+      description: Appended last among its siblings. Refused with 422 if the parent
+        is already at the third level.
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      - description: Category
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/category.StoreCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/category.CategoryResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create a category
+      tags:
+      - categories
+  /spaces/{spaceId}/categories/order:
+    patch:
+      consumes:
+      - application/json
+      description: Takes the whole ordered sibling list; positions are renumbered
+        0..n-1 in one transaction. A partial list is refused with 422.
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      - description: Ordered sibling ids
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/category.ReorderCategoriesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/category.CategoryResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Reorder one level of a space's category tree
+      tags:
+      - categories
+  /spaces/{spaceId}/documents:
+    get:
+      description: Pinned documents sort first whatever the chosen order. `search`
+        matches title and excerpt only — full-text search over the content is Modul
+        3.
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Rows per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Filter by status
+        enum:
+        - draft
+        - in_review
+        - published
+        - archived
+        in: query
+        name: status
+        type: string
+      - description: Filter by category
+        in: query
+        name: category_id
+        type: string
+      - description: Filter by author
+        in: query
+        name: author_id
+        type: string
+      - description: Match on title or excerpt
+        in: query
+        name: search
+        type: string
+      - description: Sort column
+        enum:
+        - updated_at
+        - view_count
+        - title
+        - created_at
+        in: query
+        name: sort
+        type: string
+      - description: Sort direction
+        enum:
+        - asc
+        - desc
+        in: query
+        name: direction
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/document.DocumentResource'
+                      type: array
+                    meta:
+                      $ref: '#/definitions/utils.PaginationMeta'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List documents in a space
+      tags:
+      - documents
+    post:
+      consumes:
+      - application/json
+      description: Always starts as a draft — publishing is a separate act with its
+        own permission, never a field on the create form.
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      - description: Document
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/document.StoreDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/document.DocumentDetailResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create a draft
+      tags:
+      - documents
+  /spaces/{spaceId}/documents/deleted:
+    get:
+      description: The bin. Gated on documents.destroy, which is strictly more than
+        reading — and restricted documents are not filtered out, or one could never
+        be restored by anyone.
+      parameters:
+      - description: Space ID
+        in: path
+        name: spaceId
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Rows per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/document.DocumentResource'
+                      type: array
+                    meta:
+                      $ref: '#/definitions/utils.PaginationMeta'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List a space's deleted documents
+      tags:
+      - documents
+  /tags:
+    get:
+      description: The whole vocabulary with how many documents each tag labels, so
+        deleting one shows what it would take with it.
+      parameters:
+      - description: Match on name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      items:
+                        $ref: '#/definitions/tag.TagResource'
+                      type: array
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List tags
+      tags:
+      - tags
+    post:
+      consumes:
+      - application/json
+      description: Answers with the existing tag when the name is already taken —
+        the caller wanted it to exist, and it does.
+      parameters:
+      - description: Tag
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/tag.StoreTagRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/tag.TagResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create a tag
+      tags:
+      - tags
+  /tags/{id}:
+    delete:
+      description: Removes the label from every document that carried it.
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.HTTPResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete a tag
+      tags:
+      - tags
+    put:
+      consumes:
+      - application/json
+      description: Relabels every document already carrying it. A rename onto a name
+        that already exists is refused rather than merged — merging folds one vocabulary
+        entry into another across every document using it, with no undo.
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/tag.UpdateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/tag.TagResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Rename a tag
+      tags:
+      - tags
+  /uploads/inline-image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'multipart/form-data, fields `file` and `space_id`. Returns a URL
+        for the editor to embed. Separate from attachments: the answer is a URL, not
+        a row in the file list, and the limits are tighter (FR-8).'
+      parameters:
+      - description: Space ID the image is filed under
+        in: formData
+        name: space_id
+        required: true
+        type: string
+      - description: Image (jpg, png, webp, gif)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.HTTPResponse'
+            - properties:
+                payload:
+                  properties:
+                    data:
+                      $ref: '#/definitions/attachment.InlineImageResource'
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Upload an image to embed in a document's content
+      tags:
+      - attachments
+securityDefinitions:
+  BearerAuth:
+    description: Go JWT access token, as "Bearer <token>". Obtained from /auth/login,
+      the Google flow (/auth/google/redirect), or, in local dev, /auth/dev-login.
+    in: header
+    name: Authorization
+    type: apiKey
+  M2MClientID:
+    description: Machine-to-machine client id (m2m_clients.id, the row's uuid — not
+      its display name), paired with X-Client-Secret.
+    in: header
+    name: X-Client-Id
+    type: apiKey
+  M2MClientSecret:
+    description: Machine-to-machine client secret, paired with X-Client-Id.
+    in: header
+    name: X-Client-Secret
+    type: apiKey
+swagger: "2.0"
