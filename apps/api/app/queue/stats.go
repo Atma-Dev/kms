@@ -71,10 +71,10 @@ func (r *Repository) GetStats(ctx context.Context) (*Stats, error) {
 	var byName []NameCount
 	if err := r.db.WithContext(ctx).Model(&Job{}).
 		Select(`name, COUNT(*) as count,
-			SUM(status = 'pending') as pending,
-			SUM(status = 'running') as running,
-			SUM(status = 'success') as success,
-			SUM(status = 'failed') as failed`).
+			COUNT(*) FILTER (WHERE status = 'pending') as pending,
+			COUNT(*) FILTER (WHERE status = 'running') as running,
+			COUNT(*) FILTER (WHERE status = 'success') as success,
+			COUNT(*) FILTER (WHERE status = 'failed') as failed`).
 		Group("name").Scan(&byName).Error; err != nil {
 		return nil, errors.InternalServerError("failed to aggregate queue jobs by name").WithCause(err)
 	}

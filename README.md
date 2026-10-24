@@ -3,7 +3,7 @@
 Monorepo KMS (knowledge management system), berisi API Go dan web Nuxt. Dependensi dan deployment kedua aplikasi tetap terpisah.
 
 ```text
-apps/api/       API Go (Gin + GORM/MySQL), migrasi database, seeder
+apps/api/       API Go (Gin + GORM/PostgreSQL), migrasi database, seeder
 apps/web/       Web Nuxt 4 SPA (tema Midone)
 .gitlab-ci.yml  Deployment dev per aplikasi
 compose.yaml    Container lokal API dan web
@@ -22,7 +22,7 @@ cp apps/web/.env.example apps/web/.env
 make install
 ```
 
-Isi konfigurasi MySQL, Redis, serta kredensial lain di `.env` masing-masing. Jangan commit `.env`.
+Isi konfigurasi PostgreSQL, Redis, serta kredensial lain di `.env` masing-masing. Jangan commit `.env`.
 
 API memakai port dari `APP_PORT` (default 8019). Web memakai port 3019 (`devServer.port` di `nuxt.config.ts`) dengan `NUXT_PUBLIC_API_BASE=http://localhost:8019`. CORS API hanya menerima `FRONTEND_URL`, jadi kalau port diganti, ganti ketiganya.
 
@@ -38,7 +38,7 @@ API memakai port dari `APP_PORT` (default 8019). Web memakai port 3019 (`devServ
 | `make compose-up` | Build dan jalankan container lokal |
 | `make compose-down` | Hentikan container lokal |
 
-Compose root untuk lokal, dengan MySQL dan Redis di host (`host.docker.internal`). Compose di masing-masing folder aplikasi untuk server.
+Compose root untuk lokal, dengan PostgreSQL dan Redis di host (`host.docker.internal`). Compose di masing-masing folder aplikasi untuk server.
 
 ## Git dan deployment
 
@@ -50,6 +50,6 @@ Riwayat repo `api-kms` dan `web-kms` diimpor dengan `git subtree` tanpa squash, 
 
 1. Push monorepo ke remote baru, dan pastikan runner `cid-stg` serta variabel `KEY_DEV_1` / `IP_DEV_1` tersedia untuk project itu.
 2. Di server, clone ke `/deployment/kms` dan checkout `develop`.
-3. Salin `.env`: `/deployment/api-kms/.env` → `/deployment/kms/apps/api/.env`, `/deployment/web-kms/.env` → `/deployment/kms/apps/web/.env`.
+3. Salin `.env`: `/deployment/api-kms/.env` → `/deployment/kms/apps/api/.env`, `/deployment/web-kms/.env` → `/deployment/kms/apps/web/.env`. API sekarang memakai PostgreSQL, jadi di `.env` API ganti `DB_USER`/`DB_PASSWORD`/`DB_PORT`/`DB_NAME` dan `GARTISAN_DATABASE_URL` (`postgres://user:pass@host.docker.internal:5432/kms?sslmode=disable`), lalu buat database kosongnya. Skema dibuat oleh langkah migrasi di pipeline; data MySQL lama tidak ikut dipindahkan.
 4. Matikan pipeline di repo lama, lalu jalankan pipeline monorepo. Volume `api-kms_storage` dipakai ulang karena nama project sama.
 5. Setelah stabil, hapus `/deployment/api-kms` dan `/deployment/web-kms`, lalu archive repo lama.

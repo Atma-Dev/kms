@@ -10,8 +10,9 @@ import (
 // matched sentence, short enough that ten results still fit on a screen.
 const SnippetWidth = 200
 
-// Snippet is the PRD's "snippet dengan kata kunci di-highlight" — MySQL has no
-// ts_headline, so the window and the highlighting are cut here.
+// Snippet is the PRD's "snippet dengan kata kunci di-highlight". It is cut
+// here rather than by ts_headline, which would match against lexemes and so
+// could not promise the escaping below.
 //
 // The returned string is HTML: every character of the document is escaped, and
 // the only markup in it is the <mark> this function puts there. That order
@@ -145,12 +146,10 @@ func backToWordEnd(runes []rune, i int) int {
 	return i
 }
 
-// Terms is what Snippet highlights: the words the caller typed, stripped of
-// the boolean operators booleanQuery removes, but *not* filtered by
-// the index's minimum token size — a two-letter word the index could not
-// match may still have
-// been found by the LIKE fallback, and leaving it unhighlighted would make the
-// result look like a mistake.
+// Terms is what Snippet highlights and what tsQuery searches for: the words
+// the caller typed, stripped of every character that is not a letter or a
+// digit — the same words on both sides, so whatever matched is what gets
+// highlighted.
 func Terms(raw string) []string {
 	terms := make([]string, 0, 8)
 	for _, field := range strings.Fields(raw) {

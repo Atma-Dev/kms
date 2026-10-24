@@ -296,7 +296,7 @@ func (s *Service) UpdateById(ctx context.Context, id string, request *UpdateDocu
 	// changed something end up buried among rows nothing can tell apart.
 	//
 	// Compared by meaning, not by bytes and not by flattened text. Bytes fail
-	// because MySQL's JSON column sorts keys and strips whitespace, so the
+	// because the JSONB column sorts keys and strips whitespace, so the
 	// stored form never matches what a client sent; flattened text fails the
 	// other way, because turning a paragraph into a heading leaves the words
 	// alone and is still a real change. The title is not part of this — it is

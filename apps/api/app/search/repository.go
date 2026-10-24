@@ -26,15 +26,10 @@ const HistoryLimit = 10
 // than as a feature nobody asked for.
 var likeEscaper = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
 
-// Repository is the MySQL Engine, and also the store behind the search
+// Repository is the Postgres Engine, and also the store behind the search
 // history — which is not part of Engine. See engine.go.
 type Repository struct {
 	db *gorm.DB
-	// minToken is the server's innodb_ft_min_token_size, read once at
-	// construction. Words shorter than it are not in the index at all, which
-	// is what decides whether a query can use the index or has to fall back
-	// to a LIKE.
-	minToken int
 }
 
 // Search is FR-1 through FR-3 in one query.
@@ -62,19 +57,22 @@ func (r *Repository) Search(ctx context.Context, q Query) ([]document.Document, 
 
 	scored := false
 	if q.Text != "" {
-		if expression := booleanQuery(q.Text, r.minToken); expression != "" {
+		if expression := tsQuery(q.Text); expression != "" {
 			scored = true
+			// 'simple' on both sides: the generated column was built with it,
+			// and a query parsed under another configuration would stem words
+			// the index kept whole.
 			db = db.
-				Where("MATCH(documents.title) AGAINST (? IN BOOLEAN MODE) OR MATCH(documents.search_body) AGAINST (? IN BOOLEAN MODE)", expression, expression).
-				Select("documents.*, (MATCH(documents.title) AGAINST (? IN BOOLEAN MODE) * ? + MATCH(documents.search_body) AGAINST (? IN BOOLEAN MODE)) AS score",
-					expression, TitleWeight, expression)
+				Where("documents.search_vector @@ to_tsquery('simple', ?)", expression).
+				Select("documents.*, ts_rank(?::float4[], documents.search_vector, to_tsquery('simple', ?)) AS score",
+					rankWeights, expression)
 		} else {
-			// Every word was shorter than the index's minimum token, so the
-			// full-text index holds none of them. A LIKE over title and
-			// excerpt is slow and unranked, and it is still the difference
-			// between finding "CI" and being told it does not exist.
+			// Nothing typed was a word — "++", "%" — so there is nothing to
+			// look up in the index. An unranked ILIKE over title and excerpt
+			// is still the difference between finding "C++" and being told
+			// it does not exist.
 			like := "%" + likeEscaper.Replace(q.Text) + "%"
-			db = db.Where("documents.title LIKE ? OR documents.excerpt LIKE ?", like, like)
+			db = db.Where("documents.title ILIKE ? OR documents.excerpt ILIKE ?", like, like)
 		}
 	}
 
@@ -133,13 +131,13 @@ func applyFilters(db *gorm.DB, q Query) *gorm.DB {
 
 // Suggest is FR-6: titles that start with what has been typed so far.
 //
-// A prefix LIKE, not the full-text index. The index matches words anywhere in
+// A prefix ILIKE, not the full-text index. The index matches words anywhere in
 // a title, which is the right answer for a search and the wrong one for a
 // dropdown that is supposed to be completing the thing being typed.
 func (r *Repository) Suggest(ctx context.Context, q Query) ([]document.Document, error) {
 	db := r.db.WithContext(ctx).Model(&document.Document{}).
 		Select("documents.id", "documents.space_id", "documents.title", "documents.slug", "documents.status").
-		Where("documents.title LIKE ?", likeEscaper.Replace(q.Text)+"%").
+		Where("documents.title ILIKE ?", likeEscaper.Replace(q.Text)+"%").
 		Where("documents.status = ? OR documents.author_id = ?", document.StatusPublished, q.ViewerID).
 		// Most read first: when two titles both fit, the one people actually
 		// open is the one being reached for.
@@ -211,39 +209,23 @@ func (r *Repository) DeleteHistory(ctx context.Context, userID uuid.UUID, id str
 // runs unattended over a table nobody is watching, and a sweep that costs one
 // round trip per account is the kind of job that quietly stops finishing.
 //
-// ROW_NUMBER rather than a correlated subquery for the same reason — MySQL 8
-// ranks every user's rows in one pass instead of re-scanning the table once
+// ROW_NUMBER rather than a correlated subquery for the same reason — every
+// user's rows are ranked in one pass instead of re-scanning the table once
 // per row.
 func (r *Repository) PruneHistories(ctx context.Context, keep int) (int64, error) {
 	result := r.db.WithContext(ctx).Exec(`
-		DELETE sh FROM search_histories sh
-		JOIN (
+		DELETE FROM search_histories sh
+		USING (
 			SELECT id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY updated_at DESC) AS rn
 			FROM search_histories
-		) ranked ON ranked.id = sh.id
-		WHERE ranked.rn > ?`, keep)
+		) ranked
+		WHERE ranked.id = sh.id AND ranked.rn > ?`, keep)
 	if result.Error != nil {
 		return 0, errors.InternalServerError("failed to prune search history").WithCause(result.Error)
 	}
 	return result.RowsAffected, nil
 }
 
-// NewRepository reads the server's minimum full-text token size once, here,
-// rather than on every query: it is a server variable that cannot change
-// without a restart of MySQL, and a SELECT per search to learn a constant is
-// the wrong trade in both directions.
-//
-// A server that will not answer keeps the InnoDB default. Refusing to start
-// over an optimisation hint would be worse than being slightly wrong about
-// which two-letter words need the LIKE fallback.
 func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{db: db, minToken: readMinTokenSize(db)}
-}
-
-func readMinTokenSize(db *gorm.DB) int {
-	var size int
-	if err := db.Raw("SELECT @@innodb_ft_min_token_size").Scan(&size).Error; err != nil || size < 1 {
-		return DefaultMinTokenSize
-	}
-	return size
+	return &Repository{db: db}
 }

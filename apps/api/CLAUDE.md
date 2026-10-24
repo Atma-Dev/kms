@@ -11,7 +11,7 @@ queue, scheduler, m2m clients, lookups — and the KMS domain goes on top of it.
 ## Stack
 
 - **Framework**: Gin
-- **ORM**: GORM (MySQL)
+- **ORM**: GORM (PostgreSQL, via pgx)
 - **JWT**: `gofortify` (iqbalatma/gofortify)
 - **Migrations**: `gartisan migrate` locally, plain `golang-migrate` CLI in production/CI (both wrap `golang-migrate`)
 - **OAuth**: `golang.org/x/oauth2` for redirect/PKCE, manual HTTP POST for token exchange
@@ -112,8 +112,9 @@ of a single transaction in two packages.
 would orphan or cascade-destroy every one of them. `DELETE /spaces/:id` sets
 `is_archived`, and the list hides archived spaces unless `?include_archived=1`.
 
-**The category depth cap is enforced in Go, not in the schema.** MySQL cannot
-express "the parent's parent has no parent". `category.Service.checkParent`
+**The category depth cap is enforced in Go, not in the schema.** A CHECK
+cannot look at other rows, so "the parent's parent has no parent" is not a
+constraint. `category.Service.checkParent`
 walks to the root on every create and move, counting — which doubles as the
 cycle check, since a move into your own subtree meets yourself on the way up.
 
@@ -358,56 +359,50 @@ out of it. The same stance `app/learning` took in the LMS this started from.
 (FR-4), which lives in `app/document` because everything it needs — the tags,
 the space, the access rule — is already there.
 
-### The PRD says Postgres; this is MySQL
+### The index is the PRD's tsvector
 
-There is no `tsvector`, no `setweight`, no `ts_rank` and no `ts_headline`. The
-equivalents:
-
-| PRD (Postgres) | Here |
+| PRD | Here |
 |---|---|
-| `search_vector tsvector`, generated | `documents.search_body`, a `MEDIUMTEXT` filled in Go |
-| GIN index | two InnoDB `FULLTEXT` indexes: `title`, `search_body` |
-| `setweight` A vs C, `ts_rank` | `MATCH(title) * 3 + MATCH(search_body)`, ordered on as a select alias |
+| `search_vector tsvector`, generated | `documents.search_vector`, `GENERATED ALWAYS AS ... STORED` from `title` and `search_body` |
+| GIN index | `documents_search_vector_index` |
+| `setweight` A vs C, `ts_rank` | title weight A, body weight C, `ts_rank` with explicit weights, ordered on as a select alias |
 | `ts_headline` | `search.Snippet` — the window and the `<mark>` are cut in Go |
-| a trigger to keep the index in sync | `Document.setContent`, in the write that was happening anyway |
 
-**`search_body` exists because MySQL cannot index a JSON column as text.** It
-is the flattened plain text of `content`, written by `setContent` beside the
+**`search_body` exists because the content is a JSON tree.** It is the
+flattened plain text of `content`, written by `setContent` beside the
 excerpt — the same call, so the NFR's "ter-update dalam transaksi yang sama"
-costs no trigger and no second write. Every path that changes content goes
-through that one method precisely so the two derived fields cannot be
-half-updated.
+costs no trigger and no second write. The generated column then derives the
+vector from it in the same row write; no code path can forget to update it.
+`Snippet` reads `search_body` too, because it needs the original words, not
+the lexemes a tsvector keeps.
 
-**The weighting is arithmetic, not a property of the index.** MySQL scores one
-FULLTEXT index at a time, so a title match is worth three body matches by
-multiplication at query time (`search.TitleWeight`).
+**`'simple'`, not a language configuration.** The content is mostly
+Indonesian, which Postgres has no stemmer for, and an English stemmer would
+mangle it. `'simple'` lowercases and keeps every word, short ones included —
+so "CI" is in the index, unlike under InnoDB's minimum token size. The query
+side must use `'simple'` too, or it would stem words the index kept whole.
+
+**The weights are spelled out** (`search.rankWeights`, built from
+`TitleWeight` = 3): ts_rank's default `{0.1, 0.2, 0.4, 1.0}` would make a
+title worth five body matches, a number nobody chose.
 
 **The ranking travels through a select alias.** Not decoration: gorm drops an
 `ORDER BY` carrying bind variables *without reporting it*, and
 `utils.Paginate`'s `COUNT` replaces the whole select clause and its variables.
 Computing the score in the select and ordering on `score` is the one shape
 where the sort applies and the count query stays valid. The same reason
-`RelatedTo` orders on `shared_tags` / `same_category`, and its `HAVING` names
-those aliases — MySQL only resolves a qualified column in a `HAVING` when it
-happens to be in the select list.
+`RelatedTo` orders on `shared_tags` / `same_category` — but its `HAVING`
+repeats the expressions, because Postgres resolves select aliases in
+`ORDER BY` and not in `HAVING`.
 
-**A query of only short words falls back to a `LIKE`.** Anything below
-`innodb_ft_min_token_size` is not in the index at all, so "CI" would truthfully
-answer "no results" for a word plainly in the document. `booleanQuery`
-returning empty is the signal.
-
-The limit is **read from the running server** in `NewRepository`, once, and
-`DefaultMinTokenSize` (InnoDB's own 3) is only the fallback for a server that
-will not answer. An install that tuned it down would otherwise keep taking the
-LIKE fallback for words the index now holds; one that tuned it up would search
-the index for words that are not in it. Refusing to boot over an unreadable
-optimisation hint would be worse than either.
-
-**Boolean-mode operators are stripped and every term gets a `*`.** `+`, `-`,
-`*`, `"`, `(` and `~` are syntax there, so "C++ (draft)" would be a parse error
-or a search for something else. Terms are OR-ed rather than each required with
-`+`: a four-word question would otherwise find nothing, and the relevance score
-already floats the document matching all four to the top.
+**`to_tsquery` operators are stripped and every term gets `:*`.** `&`, `|`,
+`!`, `:`, `*`, quotes and parentheses are syntax there, so "C++ (draft)" would
+be a parse error or a search for something else. `search.Terms` keeps only
+letters and digits, the same terms `Snippet` highlights. Terms are OR-ed with
+`|` rather than AND-ed: a four-word question would otherwise find nothing, and
+`ts_rank` already floats the document matching all four to the top. A query
+with no word in it at all ("++") falls back to an `ILIKE` over title and
+excerpt.
 
 ### Search hides exactly what the space list hides
 
@@ -458,7 +453,7 @@ ever recorded, to order one page, is the query that gets slower every day.
 ### The index backend is replaceable at `search.Engine`
 
 `Search` and `Suggest`, taking a `search.Query` — a value with no HTTP and no
-gorm in it. Swapping MySQL for Meilisearch is a second implementation of those
+gorm in it. Swapping Postgres for Meilisearch is a second implementation of those
 two methods and one argument in `NewContainer`.
 
 **`Query` is why the interface is worth anything.** An interface that still
@@ -472,7 +467,7 @@ about what a valid page is.
 application's own rows and would stay exactly where they are if the index
 moved to another process tomorrow. `NewService` therefore takes the engine and
 the history store as separate arguments — the same `*Repository` twice today,
-which is what the split looks like while MySQL is the only engine.
+which is what the split looks like while Postgres is the only engine.
 
 `utils.Paginate` gained `PaginateAt` for this: the request reading and the
 paging were one function, and an engine that holds a page number rather than a
@@ -523,9 +518,9 @@ The PRD models FR-6 as a `DocumentProtectionSetting` table with a nullable
 `document_id` standing for "the space default". It is `spaces.protection_level`
 (NOT NULL) and `documents.protection_level` (nullable) here:
 
-- MySQL treats NULLs as distinct in a unique index, so
-  `UNIQUE (space_id, document_id)` would not stop a second, conflicting space
-  default from being inserted. A column cannot disagree with itself.
+- NULLs are distinct in a unique index, so `UNIQUE (space_id, document_id)`
+  would not stop a second, conflicting space default from being inserted. A
+  column cannot disagree with itself.
 - `GetById` joins the space for its level, so resolving one costs nothing
   beyond the read that was already happening. A table would add a query to the
   hot path of every document open.
@@ -576,8 +571,8 @@ cascades — the aggregate that survives a deleted reader is already in
 row *is* the evidence and removing an account must not be a way to erase the
 trail behind it.
 
-**Append-only means there is no route that writes one any other way.** MySQL is
-not asked to enforce it: a trigger that refuses UPDATE still yields to whoever
+**Append-only means there is no route that writes one any other way.** The
+database is not asked to enforce it: a trigger that refuses UPDATE still yields to whoever
 could drop the trigger. The repository has a `RecordAccess` and no update or
 delete beside it.
 
@@ -630,6 +625,15 @@ resolved level and the override — a second endpoint returning one field of a
 resource the client is already holding is one more thing to keep in step.
 
 ## Ids validate as `uuid`, not `uuid4`
+
+Every id column is a Postgres `UUID`, and Postgres answers a comparison
+between a uuid column and text that is not one with an error (22P02), not an
+empty result. `middleware.ValidateUUIDParams`, on the whole `/api` group,
+therefore checks the `:id`, `:spaceId`, `:sessionId` and `:accessId` route
+params (malformed → 404) and the `space_id`, `category_id`, `author_id` and
+`user_id` filters (malformed → 422) before any handler runs. Search checks its
+own `?tag=`. A new id-shaped parameter or filter needs adding there, or a typo
+in it becomes a 500.
 
 Seeded accounts carry UUIDv5 (a stable id derived from the seed code — see
 `database/seeders/user.go`), and ids imported from another system may be v1.
@@ -982,7 +986,7 @@ gartisan db:seed                      # runs go run ./cmd/seed
 ```
 
 Production/CI has no `gartisan` dependency — the Docker image installs the plain
-`golang-migrate` CLI instead and runs it directly against
+`golang-migrate` CLI (built with the `postgres` tag) instead and runs it directly against
 `GARTISAN_DATABASE_URL`. Both read and write the exact same
 `file://database/migrations` source and the same `schema_migrations` row, so
 either tool sees the state the other left:
@@ -1038,7 +1042,7 @@ APP_PORT=8000
 DB_USER=
 DB_PASSWORD=
 DB_HOST=localhost
-DB_PORT=3306
+DB_PORT=5432
 DB_NAME=
 
 OAUTH_GOOGLE_CLIENT_ID=           # from Google Cloud Console OAuth client (confidential, web application type)

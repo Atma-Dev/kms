@@ -4,7 +4,7 @@
 // with type="queue" (via joblog.Broadcaster), so the run-history page shows
 // both scheduled and queue runs from one table.
 //
-// MySQL holds the jobs; Redis (queue.Notifier) is only a doorbell that wakes
+// Postgres holds the jobs; Redis (queue.Notifier) is only a doorbell that wakes
 // an idle worker early. Workers claim rows with SELECT ... FOR UPDATE SKIP
 // LOCKED and also poll on a fixed interval, so a lost Redis message costs
 // latency, never a job.

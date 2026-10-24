@@ -1,8 +1,8 @@
 // Package category is the tree a space organises its documents by: at most
 // three levels, ordered among siblings.
 //
-// The depth cap lives here rather than in the schema because MySQL cannot say
-// "the parent's parent has no parent". It is checked against the prospective
+// The depth cap lives here rather than in the schema because a CHECK cannot
+// look at other rows to say "the parent's parent has no parent". It is checked against the prospective
 // parent's own depth on every create and move, so the only way to exceed it is
 // to write the rows directly.
 package category

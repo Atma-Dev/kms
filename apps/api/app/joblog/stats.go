@@ -54,11 +54,11 @@ type JobStat struct {
 
 // window bundles the range query param's derived shape: how far back to
 // look, how to format a bucket label, and how big a step advances one bucket
-// — kept together so trend()'s gap-fill loop and the SQL DATE_FORMAT pattern
+// — kept together so trend()'s gap-fill loop and the SQL to_char pattern
 // can never drift apart from each other.
 type window struct {
 	since      time.Time
-	dateFormat string // MySQL DATE_FORMAT pattern
+	dateFormat string // Postgres to_char pattern
 	goLayout   string // equivalent Go time layout, for the gap-fill loop
 	step       time.Duration
 }
@@ -67,13 +67,17 @@ func newWindow(rangeParam string) window {
 	now := time.Now()
 	switch rangeParam {
 	case "7d":
-		return window{since: now.Add(-7 * 24 * time.Hour), dateFormat: "%Y-%m-%d", goLayout: "2006-01-02", step: 24 * time.Hour}
+		return window{since: now.Add(-7 * 24 * time.Hour), dateFormat: "YYYY-MM-DD", goLayout: "2006-01-02", step: 24 * time.Hour}
 	case "30d":
-		return window{since: now.Add(-30 * 24 * time.Hour), dateFormat: "%Y-%m-%d", goLayout: "2006-01-02", step: 24 * time.Hour}
+		return window{since: now.Add(-30 * 24 * time.Hour), dateFormat: "YYYY-MM-DD", goLayout: "2006-01-02", step: 24 * time.Hour}
 	default: // "24h" and anything unrecognized
-		return window{since: now.Add(-24 * time.Hour), dateFormat: "%Y-%m-%d %H:00", goLayout: "2006-01-02 15:00", step: time.Hour}
+		return window{since: now.Add(-24 * time.Hour), dateFormat: "YYYY-MM-DD HH24:00", goLayout: "2006-01-02 15:00", step: time.Hour}
 	}
 }
+
+// durationMsSQL is a run's duration in milliseconds, NULL while it is still
+// running — which AVG and MAX skip, so unfinished runs never count as zero.
+const durationMsSQL = "EXTRACT(EPOCH FROM (finished_at - started_at)) * 1000"
 
 // scope applies the range/type filter every aggregation below shares.
 func (r *Repository) scope(ctx context.Context, since time.Time, jobType string) *gorm.DB {
@@ -137,7 +141,7 @@ func (r *Repository) summary(ctx context.Context, since time.Time, jobType strin
 	}
 	err := r.scope(ctx, since, jobType).
 		Where("finished_at IS NOT NULL").
-		Select("AVG(TIMESTAMPDIFF(MICROSECOND, started_at, finished_at)) / 1000 as avg_ms, MAX(TIMESTAMPDIFF(MICROSECOND, started_at, finished_at)) / 1000 as max_ms").
+		Select("AVG(" + durationMsSQL + ") as avg_ms, MAX(" + durationMsSQL + ") as max_ms").
 		Scan(&duration).Error
 	if err != nil {
 		return nil, errors.InternalServerError("failed to summarize job log durations").WithCause(err)
@@ -158,8 +162,13 @@ func (r *Repository) trend(ctx context.Context, w window, jobType string) ([]Tre
 		Status Status
 		Count  int64
 	}
+	// The bucket is cut in this process's time zone, not the database
+	// session's: the gap-fill loop below labels buckets with Go's local time,
+	// and a server session in UTC would otherwise shift every bar by the
+	// offset. A fixed offset is enough — the trend spans at most 30 days.
+	_, offset := time.Now().Zone()
 	err := r.scope(ctx, w.since, jobType).
-		Select(fmt.Sprintf("DATE_FORMAT(started_at, '%s') as bucket, status, COUNT(*) as count", w.dateFormat)).
+		Select(fmt.Sprintf("to_char(started_at AT TIME ZONE make_interval(secs => ?), '%s') as bucket, status, COUNT(*) as count", w.dateFormat), offset).
 		Group("bucket, status").
 		Scan(&rows).Error
 	if err != nil {
@@ -219,11 +228,11 @@ func (r *Repository) byJob(ctx context.Context, since time.Time, jobType string)
 	err := r.db.WithContext(ctx).Model(&JobLog{}).
 		Where(whereSQL, args...).
 		Select(`type, name, COUNT(*) as total,
-			SUM(status = 'success') as success,
-			SUM(status = 'failed') as failed,
-			SUM(status = 'skipped') as skipped,
-			AVG(CASE WHEN finished_at IS NOT NULL THEN TIMESTAMPDIFF(MICROSECOND, started_at, finished_at) / 1000 END) as avg_ms,
-			MAX(CASE WHEN finished_at IS NOT NULL THEN TIMESTAMPDIFF(MICROSECOND, started_at, finished_at) / 1000 END) as max_ms`).
+			COUNT(*) FILTER (WHERE status = 'success') as success,
+			COUNT(*) FILTER (WHERE status = 'failed') as failed,
+			COUNT(*) FILTER (WHERE status = 'skipped') as skipped,
+			AVG(` + durationMsSQL + `) as avg_ms,
+			MAX(` + durationMsSQL + `) as max_ms`).
 		Group("type, name").
 		Scan(&totals).Error
 	if err != nil {

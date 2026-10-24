@@ -136,7 +136,7 @@ func (h *Handler) DevLogin(c *gin.Context) error {
 	}
 
 	var userFromDB user.User
-	if err := config.DB.Where("email = ?", email).First(&userFromDB).Error; err != nil {
+	if err := config.DB.Where("LOWER(email) = LOWER(?)", email).First(&userFromDB).Error; err != nil {
 		utils.ResponseJSON(c, enums.ERR_NOT_FOUND, "User not found", nil)
 		return nil
 	}
@@ -208,7 +208,7 @@ func (h *Handler) Login(c *gin.Context) error {
 	}
 
 	var currentUser user.User
-	err := config.DB.Where("email = ?", request.Email).First(&currentUser).Error
+	err := config.DB.Where("LOWER(email) = LOWER(?)", request.Email).First(&currentUser).Error
 
 	// One failure path for "no such user", "account has no password set" and
 	// "wrong password": three distinct answers would tell a caller which
@@ -319,7 +319,7 @@ func (h *Handler) GoogleCallback(c *gin.Context) error {
 // an enumeration oracle. See Login.
 func resolveMember(email string) (*user.User, string) {
 	var currentUser user.User
-	if email == "" || config.DB.Where("email = ?", email).First(&currentUser).Error != nil {
+	if email == "" || config.DB.Where("LOWER(email) = LOWER(?)", email).First(&currentUser).Error != nil {
 		return nil, "no_account"
 	}
 

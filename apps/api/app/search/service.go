@@ -116,7 +116,7 @@ func (s *Service) DeleteHistory(ctx context.Context, viewer *user.User, id strin
 
 // NewService takes the engine and the history store separately even though one
 // *Repository is both today — that is the point of the split, and passing the
-// same value twice is what it looks like while MySQL is the only engine.
+// same value twice is what it looks like while Postgres is the only engine.
 func NewService(engine Engine, history *Repository, documents *document.Service) *Service {
 	return &Service{engine: engine, history: history, documents: documents}
 }

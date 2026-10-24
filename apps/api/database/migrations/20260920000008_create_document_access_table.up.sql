@@ -10,13 +10,13 @@
 -- and therefore carries no foreign key: one column cannot reference two
 -- tables. Rows are cleaned up by the application when a role is deleted.
 CREATE TABLE document_access (
-    id CHAR(36) NOT NULL PRIMARY KEY,
-    document_id CHAR(36) NOT NULL,
+    id UUID NOT NULL PRIMARY KEY,
+    document_id UUID NOT NULL,
     subject_type VARCHAR(8) NOT NULL,
-    subject_id CHAR(36) NOT NULL,
+    subject_id UUID NOT NULL,
     permission VARCHAR(8) NOT NULL,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
-    UNIQUE KEY document_access_subject_unique (document_id, subject_type, subject_id),
+    created_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NULL,
+    CONSTRAINT document_access_subject_unique UNIQUE (document_id, subject_type, subject_id),
     CONSTRAINT document_access_document_id_foreign FOREIGN KEY (document_id) REFERENCES documents (id) ON DELETE CASCADE
 );

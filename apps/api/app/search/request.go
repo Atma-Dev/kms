@@ -80,6 +80,18 @@ func ParseQuery(c *gin.Context, viewerID uuid.UUID, hidden []uuid.UUID) (Query, 
 		to = &end
 	}
 
+	// ?tag= is a tag id, compared with a uuid column; space_id and the other
+	// id filters are checked by middleware.ValidateUUIDParams, which leaves
+	// this one alone because "tag" is too generic a name to claim globally.
+	tagID := c.Query("tag")
+	if tagID != "" {
+		if _, err := uuid.Parse(tagID); err != nil {
+			return Query{}, errors.InvalidStatusException("tag must be a UUID").
+				WithErrors(map[string][]string{"tag": {"must be a UUID"}}).
+				WithCause(err)
+		}
+	}
+
 	path := ""
 	if c.Request != nil {
 		path = c.Request.URL.Path
@@ -89,7 +101,7 @@ func ParseQuery(c *gin.Context, viewerID uuid.UUID, hidden []uuid.UUID) (Query, 
 		Text:       strings.TrimSpace(c.Query("q")),
 		SpaceID:    c.Query("space_id"),
 		CategoryID: c.Query("category_id"),
-		TagID:      c.Query("tag"),
+		TagID:      tagID,
 		AuthorID:   c.Query("author_id"),
 		From:       from,
 		To:         to,

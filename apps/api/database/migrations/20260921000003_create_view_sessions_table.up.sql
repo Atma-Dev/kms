@@ -14,16 +14,17 @@
 -- is who is answerable for the share, and the access log rows the link
 -- produces carry no user of their own.
 CREATE TABLE view_sessions (
-    id CHAR(36) NOT NULL PRIMARY KEY,
-    document_id CHAR(36) NOT NULL,
-    created_by CHAR(36) NOT NULL,
+    id UUID NOT NULL PRIMARY KEY,
+    document_id UUID NOT NULL,
+    created_by UUID NOT NULL,
     label VARCHAR(255) NULL,
     token_hash CHAR(64) NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NULL,
-    UNIQUE KEY view_sessions_token_hash_unique (token_hash),
-    KEY view_sessions_document_index (document_id),
-    KEY view_sessions_expires_at_index (expires_at),
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NULL,
+    CONSTRAINT view_sessions_token_hash_unique UNIQUE (token_hash),
     CONSTRAINT view_sessions_document_id_foreign FOREIGN KEY (document_id) REFERENCES documents (id) ON DELETE CASCADE,
     CONSTRAINT view_sessions_created_by_foreign FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE CASCADE
 );
+
+CREATE INDEX view_sessions_document_index ON view_sessions (document_id);
+CREATE INDEX view_sessions_expires_at_index ON view_sessions (expires_at);

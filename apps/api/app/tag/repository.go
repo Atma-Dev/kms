@@ -16,7 +16,7 @@ type Repository struct {
 func (r *Repository) GetAll(ctx context.Context, search string) ([]Tag, error) {
 	db := r.db.WithContext(ctx).Order("name ASC")
 	if search != "" {
-		db = db.Where("name LIKE ?", "%"+search+"%")
+		db = db.Where("name ILIKE ?", "%"+search+"%")
 	}
 
 	var tags []Tag

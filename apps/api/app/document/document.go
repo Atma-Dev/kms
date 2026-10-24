@@ -31,8 +31,8 @@ const (
 	StatusArchived  Status = "archived"
 )
 
-// Content is the editor's node tree (TipTap/ProseMirror), stored in a MySQL
-// JSON column and passed through untouched.
+// Content is the editor's node tree (TipTap/ProseMirror), stored in a JSONB
+// column and passed through untouched.
 //
 // It is deliberately not decoded into Go structs. Nothing on the server reads
 // the tree except Flatten, which walks it generically — modelling every node
@@ -84,8 +84,8 @@ type Document struct {
 	// client — two fields that can disagree about the same text is a bug
 	// waiting for someone to edit one of them.
 	Excerpt *string `json:"excerpt" gorm:"column:excerpt"`
-	// SearchBody is the flattened plain text of Content, kept only so MySQL's
-	// FULLTEXT index has something to index — a JSON column cannot be. Derived
+	// SearchBody is the flattened plain text of Content, which the generated
+	// search_vector column is built from — a JSON tree is not text. Derived
 	// on every write beside Excerpt, never sent to a client, and never read by
 	// anything but the search query and the snippet it cuts (Modul 3 FR-1).
 	SearchBody *string `json:"-" gorm:"column:search_body"`

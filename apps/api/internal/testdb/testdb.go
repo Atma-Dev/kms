@@ -4,19 +4,18 @@
 package testdb
 
 import (
+	"api-kms/config"
+	"api-kms/utils"
 	"context"
 	"crypto/rand"
 	"encoding/binary"
 	stderrors "errors"
-	"fmt"
-	"api-kms/config"
-	"api-kms/utils"
 	"os"
 	"strconv"
 	"testing"
 
 	"github.com/redis/go-redis/v9"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -66,10 +65,7 @@ func Open(t *testing.T) *gorm.DB {
 	t.Helper()
 	ensureEnvLoaded(t)
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config.AppConfig.DbUser, config.AppConfig.DbPassword,
-		config.AppConfig.DbHost, config.AppConfig.DbPort, config.AppConfig.DbName)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{TranslateError: true})
+	db, err := gorm.Open(postgres.Open(config.DSN()), &gorm.Config{TranslateError: true})
 	if err != nil || db.Exec("SELECT 1").Error != nil {
 		skipOrFail(t, "no dev database reachable")
 	}

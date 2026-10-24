@@ -1,6 +1,6 @@
 name: kms
 
-# Local containers. MySQL and Redis run on the host.
+# Local containers. PostgreSQL and Redis run on the host.
 services:
   api:
     build:

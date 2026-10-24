@@ -10,12 +10,13 @@
 -- user_id cascades on delete: a deleted user's reads are their personal
 -- history, and the aggregate that survives them is already in view_count.
 CREATE TABLE document_views (
-    id CHAR(36) NOT NULL PRIMARY KEY,
-    document_id CHAR(36) NOT NULL,
-    user_id CHAR(36) NOT NULL,
-    viewed_at TIMESTAMP NOT NULL,
-    KEY document_views_document_viewed_index (document_id, viewed_at),
-    KEY document_views_user_viewed_index (user_id, viewed_at),
+    id UUID NOT NULL PRIMARY KEY,
+    document_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    viewed_at TIMESTAMPTZ NOT NULL,
     CONSTRAINT document_views_document_id_foreign FOREIGN KEY (document_id) REFERENCES documents (id) ON DELETE CASCADE,
     CONSTRAINT document_views_user_id_foreign FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
+
+CREATE INDEX document_views_document_viewed_index ON document_views (document_id, viewed_at);
+CREATE INDEX document_views_user_viewed_index ON document_views (user_id, viewed_at);

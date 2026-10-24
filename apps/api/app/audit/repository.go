@@ -42,7 +42,7 @@ func (r *Repository) GetAllPaginated(c *gin.Context) ([]Model, *utils.Pagination
 		db = db.Where("created_at >= ?", dateFrom)
 	}
 	if dateTo := c.Query("date_to"); dateTo != "" {
-		db = db.Where("created_at < DATE_ADD(?, INTERVAL 1 DAY)", dateTo)
+		db = db.Where("created_at < ?::date + INTERVAL '1 day'", dateTo)
 	}
 
 	meta, err := utils.Paginate(c, db, &rows)

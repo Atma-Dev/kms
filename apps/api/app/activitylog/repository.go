@@ -35,7 +35,7 @@ func (r *Repository) GetAllPaginated(c *gin.Context) ([]ActivityLog, *utils.Pagi
 		Order("created_at DESC")
 
 	if search := c.Query("search"); search != "" {
-		db = db.Where("path LIKE ?", "%"+search+"%")
+		db = db.Where("path ILIKE ?", "%"+search+"%")
 	}
 	if userID := c.Query("user_id"); userID != "" {
 		db = db.Where("user_id = ?", userID)
@@ -51,13 +51,13 @@ func (r *Repository) GetAllPaginated(c *gin.Context) ([]ActivityLog, *utils.Pagi
 		}
 	}
 	// created_at compared directly (not wrapped in DATE()) so the range can
-	// still use an index; DATE_ADD gives date_to the same "whole day
+	// still use an index; adding a day gives date_to the same "whole day
 	// inclusive" behavior as the deposits list filter.
 	if dateFrom := c.Query("date_from"); dateFrom != "" {
 		db = db.Where("created_at >= ?", dateFrom)
 	}
 	if dateTo := c.Query("date_to"); dateTo != "" {
-		db = db.Where("created_at < DATE_ADD(?, INTERVAL 1 DAY)", dateTo)
+		db = db.Where("created_at < ?::date + INTERVAL '1 day'", dateTo)
 	}
 
 	meta, err := utils.Paginate(c, db, &logs)

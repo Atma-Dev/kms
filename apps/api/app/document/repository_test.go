@@ -40,7 +40,7 @@ func newFixture(t *testing.T) *fixture {
 	f := &fixture{db: db, repo: NewRepository(db), spaceID: uuid.New(), authorID: author.ID, open: uuid.New(), locked: uuid.New()}
 
 	if err := db.Exec(
-		"INSERT INTO spaces (id, name, slug, is_archived, created_by, created_at, updated_at) VALUES (?,?,?,0,?,NOW(),NOW())",
+		"INSERT INTO spaces (id, name, slug, is_archived, created_by, created_at, updated_at) VALUES (?,?,?,FALSE,?,NOW(),NOW())",
 		f.spaceID, "test-"+f.spaceID.String()[:8], "test-"+f.spaceID.String()[:8], author.ID,
 	).Error; err != nil {
 		t.Fatalf("failed to seed space: %v", err)
@@ -245,7 +245,7 @@ func TestCategoryFilterMatchesTheWholeSubtree(t *testing.T) {
 		{migrations, &database, "Migrations"},
 	} {
 		if err := f.db.Exec(
-			"INSERT INTO categories (id, space_id, parent_id, name, slug, `order`, created_at, updated_at) VALUES (?,?,?,?,?,0,NOW(),NOW())",
+			"INSERT INTO categories (id, space_id, parent_id, name, slug, \"order\", created_at, updated_at) VALUES (?,?,?,?,?,0,NOW(),NOW())",
 			c.id, f.spaceID, c.parent, c.name, c.name+"-"+c.id.String()[:8],
 		).Error; err != nil {
 			t.Fatalf("failed to seed category: %v", err)
@@ -292,7 +292,7 @@ func TestRelatedToRanksSharedTagsAboveSharedCategory(t *testing.T) {
 
 	categoryID := uuid.New()
 	if err := f.db.Exec(
-		"INSERT INTO categories (id, space_id, name, slug, `order`, created_at, updated_at) VALUES (?,?,?,?,0,NOW(),NOW())",
+		"INSERT INTO categories (id, space_id, name, slug, \"order\", created_at, updated_at) VALUES (?,?,?,?,0,NOW(),NOW())",
 		categoryID, f.spaceID, "cat-"+categoryID.String()[:8], "cat-"+categoryID.String()[:8],
 	).Error; err != nil {
 		t.Skipf("could not seed a category: %v", err)

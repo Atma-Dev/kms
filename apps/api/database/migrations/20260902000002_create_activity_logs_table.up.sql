@@ -4,13 +4,14 @@
 -- request completes. user_id is nullable since unauthenticated requests
 -- (login, health checks) still get logged.
 CREATE TABLE activity_logs (
-    id CHAR(36) NOT NULL PRIMARY KEY,
-    user_id CHAR(36) NULL,
+    id UUID NOT NULL PRIMARY KEY,
+    user_id UUID NULL,
     method VARCHAR(10) NOT NULL,
     path VARCHAR(255) NOT NULL,
     status_code SMALLINT NOT NULL,
     ip VARCHAR(45) NOT NULL,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
-    INDEX activity_logs_user_id_created_at_index (user_id, created_at)
+    created_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NULL
 );
+
+CREATE INDEX activity_logs_user_id_created_at_index ON activity_logs (user_id, created_at);

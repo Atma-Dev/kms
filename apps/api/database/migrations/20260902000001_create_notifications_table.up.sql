@@ -6,16 +6,17 @@
 -- (invoice_number, old/new status, ...) without a column per notification
 -- type.
 CREATE TABLE notifications (
-    id CHAR(36) NOT NULL PRIMARY KEY,
-    user_id CHAR(36) NOT NULL,
+    id UUID NOT NULL PRIMARY KEY,
+    user_id UUID NOT NULL,
     type VARCHAR(50) NOT NULL,
     title VARCHAR(255) NOT NULL,
     body VARCHAR(500) NOT NULL,
-    data JSON NULL,
-    read_at TIMESTAMP NULL,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
-    INDEX notifications_user_id_created_at_index (user_id, created_at),
-    INDEX notifications_user_id_read_at_index (user_id, read_at),
+    data JSONB NULL,
+    read_at TIMESTAMPTZ NULL,
+    created_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NULL,
     CONSTRAINT notifications_user_id_foreign FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+CREATE INDEX notifications_user_id_created_at_index ON notifications (user_id, created_at);
+CREATE INDEX notifications_user_id_read_at_index ON notifications (user_id, read_at);

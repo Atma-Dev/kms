@@ -5,7 +5,7 @@
 -- request automatically — this is field-change shaped and only exists where
 -- a call site chose to record one.
 CREATE TABLE audits (
-    id CHAR(36) NOT NULL PRIMARY KEY,
+    id UUID NOT NULL PRIMARY KEY,
     action VARCHAR(255) NULL,
     message VARCHAR(500) NULL,
     app_name VARCHAR(255) NULL,
@@ -20,14 +20,15 @@ CREATE TABLE audits (
     user_agent VARCHAR(500) NULL,
     entry_object_table VARCHAR(255) NULL,
     entry_object_id VARCHAR(255) NULL,
-    tag JSON NULL,
-    additional JSON NULL,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
-    -- "show full history of this record" — the most common query against this table
-    INDEX audits_entry_object_index (entry_object_table, entry_object_id),
-    -- "what did this user do"
-    INDEX audits_actor_index (actor_table, actor_id),
-    -- time-range filtering / pagination / retention cleanup
-    INDEX audits_created_at_index (created_at)
+    tag JSONB NULL,
+    additional JSONB NULL,
+    created_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NULL
 );
+
+-- "show full history of this record" — the most common query against this table
+CREATE INDEX audits_entry_object_index ON audits (entry_object_table, entry_object_id);
+-- "what did this user do"
+CREATE INDEX audits_actor_index ON audits (actor_table, actor_id);
+-- time-range filtering / pagination / retention cleanup
+CREATE INDEX audits_created_at_index ON audits (created_at);

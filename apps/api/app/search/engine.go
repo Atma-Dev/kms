@@ -29,5 +29,5 @@ type Engine interface {
 	Suggest(ctx context.Context, q Query) ([]document.Document, error)
 }
 
-// Repository is the MySQL implementation, and the only one today.
+// Repository is the Postgres implementation, and the only one today.
 var _ Engine = (*Repository)(nil)

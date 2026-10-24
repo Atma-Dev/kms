@@ -22,7 +22,7 @@ func TestCreate(t *testing.T) {
 	db := testdb.Open(t)
 	repo := NewRepository(db)
 
-	userID := "test-user"
+	userID := uuid.NewString()
 	log := &ActivityLog{Method: "GET", Path: "/api/test", StatusCode: 200, IP: "127.0.0.1", UserID: &userID}
 	if err := repo.Create(context.Background(), log); err != nil {
 		t.Fatalf("Create returned error: %v", err)

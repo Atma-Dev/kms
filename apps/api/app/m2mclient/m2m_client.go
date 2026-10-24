@@ -14,9 +14,8 @@ const (
 	ScopeAll = "*"
 )
 
-// Scopes is a JSON array column: MySQL has no native string-array type, and
-// this list is short and never queried by element, so a scan/value pair is
-// simpler than a join table.
+// Scopes is a JSONB array column: the list is short and never queried by
+// element, so a scan/value pair is simpler than a join table.
 type Scopes []string
 
 func (s Scopes) Value() (driver.Value, error) {

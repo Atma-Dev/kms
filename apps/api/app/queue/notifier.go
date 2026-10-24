@@ -11,7 +11,7 @@ import (
 const notifyChannel = "queue:dispatch"
 
 // Notifier is Redis used only as a doorbell to wake an idle worker early.
-// MySQL holds the jobs, so a missed or lost publish costs latency (the
+// Postgres holds the jobs, so a missed or lost publish costs latency (the
 // worker's own poll ticker finds the job anyway), never a dropped job.
 type Notifier struct {
 	rdb *redis.Client

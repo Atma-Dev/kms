@@ -8,6 +8,7 @@ import (
 	"api-kms/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	goaudit "github.com/iqbalatma/go-audit"
 	"gorm.io/gorm"
 )
@@ -27,6 +28,13 @@ var (
 // and already generated for every client regardless — no reason to keep two
 // identifiers when one already does the job intended for X-Client-Id.
 func loadM2MClient(c *gin.Context, clientID string) (*m2mclient.M2MClient, *utils.HTTPError) {
+	// Checked before the query: Postgres rejects a non-UUID compared with the
+	// uuid id column (22P02) rather than finding nothing, and that would turn
+	// a bad credential into a 500.
+	if _, err := uuid.Parse(clientID); err != nil {
+		return nil, errors.InvalidCredential().WithCause(err)
+	}
+
 	var client m2mclient.M2MClient
 	err := config.DB.WithContext(c.Request.Context()).
 		Where("id = ? AND revoked_at IS NULL", clientID).

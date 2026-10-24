@@ -206,7 +206,7 @@ func Excerpt(content Content, max int) *string {
 
 // SameContent reports whether two node trees mean the same thing.
 //
-// Not a byte comparison. MySQL's JSON column is a normalising store: it strips
+// Not a byte comparison. A JSONB column is a normalising store: it strips
 // whitespace and sorts object keys, so what comes back out never matches the
 // bytes a client sent even when nothing changed. A byte check therefore calls
 // every edit a content change, which is the bug it was meant to prevent.

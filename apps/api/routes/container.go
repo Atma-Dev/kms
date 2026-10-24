@@ -103,7 +103,7 @@ func NewContainer(db *gorm.DB, rdb *redis.Client, activityLogHub *activitylog.Hu
 	// documents FR-9 hides from this caller, which only app/document can say.
 	// After documentService too: search hides the documents FR-9 hides, and
 	// asks app/document which those are rather than restating the rule.
-	// The same repository twice: it is the MySQL Engine and the history
+	// The same repository twice: it is the Postgres Engine and the history
 	// store, which are separate arguments precisely so the first can be
 	// swapped for another index without touching the second.
 	searchService := search.NewService(searchRepository, searchRepository, documentService)

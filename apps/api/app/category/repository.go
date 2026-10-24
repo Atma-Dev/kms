@@ -19,7 +19,7 @@ func (r *Repository) GetBySpace(ctx context.Context, spaceID string) ([]Category
 	var categories []Category
 	if err := r.db.WithContext(ctx).
 		Where("space_id = ?", spaceID).
-		Order("`order` ASC, name ASC").
+		Order(`"order" ASC, name ASC`).
 		Find(&categories).Error; err != nil {
 		return nil, errors.InternalServerError("failed to get categories").WithCause(err)
 	}
@@ -58,7 +58,7 @@ func (r *Repository) NextOrder(ctx context.Context, spaceID string, parentID *uu
 	// COALESCE keeps this a single row rather than a nil scan on the first
 	// category in a space.
 	var next int
-	if err := db.Select("COALESCE(MAX(`order`) + 1, 0)").Scan(&next).Error; err != nil {
+	if err := db.Select(`COALESCE(MAX("order") + 1, 0)`).Scan(&next).Error; err != nil {
 		return 0, errors.InternalServerError("failed to get next category order").WithCause(err)
 	}
 	return next, nil

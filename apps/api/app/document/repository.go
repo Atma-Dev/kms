@@ -66,7 +66,7 @@ func (r *Repository) GetAllPaginated(c *gin.Context, spaceID string, hidden []uu
 		// Title and excerpt only. Searching the content column is Modul 3's
 		// job — a LIKE over a JSON blob would scan every row and still miss
 		// text split across marks.
-		db = db.Where("title LIKE ? OR excerpt LIKE ?", "%"+search+"%", "%"+search+"%")
+		db = db.Where("title ILIKE ? OR excerpt ILIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 
 	var documents []Document
@@ -412,12 +412,14 @@ func (r *Repository) SetPinned(ctx context.Context, id string, pinned bool) erro
 // suggestion.
 func (r *Repository) RelatedTo(ctx context.Context, doc *Document, tagIDs, hidden []uuid.UUID, limit int) ([]Document, error) {
 	// A document with no category has no category tie-breaker: the literal 0
-	// keeps the ordering valid rather than sorting on NULL, which MySQL would
-	// rank below every real comparison and silently reverse the intent.
+	// keeps the ordering valid rather than sorting on NULL, which a DESC sort
+	// puts first and so silently reverses the intent. The CASE makes it an
+	// integer either way — a bare comparison would be a boolean, which cannot
+	// be compared with the 1 below.
 	sameCategory := "0"
 	categoryArgs := []any{}
 	if doc.CategoryID != nil {
-		sameCategory = "documents.category_id = ?"
+		sameCategory = "CASE WHEN documents.category_id = ? THEN 1 ELSE 0 END"
 		categoryArgs = append(categoryArgs, *doc.CategoryID)
 	}
 
@@ -435,13 +437,12 @@ func (r *Repository) RelatedTo(ctx context.Context, doc *Document, tagIDs, hidde
 		// Only published: a suggestion is a recommendation to go and read
 		// something, and a draft is not ready to be read.
 		Where("documents.status = ?", StatusPublished).
+		// documents.* under a GROUP BY on the id alone is valid because id is
+		// the primary key: every other column is functionally dependent on it.
 		Group("documents.id").
-		// The HAVING names the select aliases, not the expressions again.
-		// MySQL can only resolve a qualified column in a HAVING when it
-		// happens to be in the select list — so `documents.category_id` here
-		// works only as long as the select says `documents.*`, and stops
-		// compiling the day someone narrows it.
-		Having("shared_tags > 0 OR same_category = 1").
+		// The HAVING repeats the expressions rather than naming the select
+		// aliases: Postgres resolves aliases in ORDER BY but not in HAVING.
+		Having("COUNT(dt.tag_id) > 0 OR ("+sameCategory+") = 1", categoryArgs...).
 		Order("shared_tags DESC, same_category DESC, documents.updated_at DESC").
 		Limit(limit)
 

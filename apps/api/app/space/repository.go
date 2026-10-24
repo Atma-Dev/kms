@@ -18,7 +18,7 @@ func (r *Repository) GetAllPaginated(c *gin.Context) ([]Space, *utils.Pagination
 	db := r.db.WithContext(c).Order("name ASC")
 
 	if search := c.Query("search"); search != "" {
-		db = db.Where("name LIKE ?", "%"+search+"%")
+		db = db.Where("name ILIKE ?", "%"+search+"%")
 	}
 	// Archived spaces are hidden unless asked for: the list is mostly used to
 	// pick where a document goes, and an archived space is not a valid answer.

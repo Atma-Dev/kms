@@ -43,7 +43,7 @@ func newFixture(t *testing.T) *fixture {
 	}
 
 	if err := db.Exec(
-		"INSERT INTO spaces (id, name, slug, is_archived, created_by, created_at, updated_at) VALUES (?,?,?,0,?,NOW(),NOW())",
+		"INSERT INTO spaces (id, name, slug, is_archived, created_by, created_at, updated_at) VALUES (?,?,?,FALSE,?,NOW(),NOW())",
 		f.spaceID, "search-"+f.spaceID.String()[:8], "search-"+f.spaceID.String()[:8], author.ID,
 	).Error; err != nil {
 		t.Fatalf("failed to seed space: %v", err)
@@ -140,17 +140,30 @@ func TestSearchShowsOnlyMyOwnDrafts(t *testing.T) {
 	}
 }
 
-// Every word below innodb_ft_min_token_size means the full-text index holds
-// nothing to match, and the query has to fall back to a LIKE rather than
-// answering "no results" to a word that is plainly in the document.
-func TestSearchFallsBackToLikeWhenNothingIsIndexable(t *testing.T) {
+// The 'simple' configuration keeps every word, so a two-letter query is
+// answered by the index rather than "no results" for a word that is plainly
+// in the document — what InnoDB's minimum token size used to cost.
+func TestSearchFindsShortWords(t *testing.T) {
 	f := newFixture(t)
 	f.seed(t, uuid.New(), "CI overview", "runs on every push", "published")
 
 	got := f.searchAs(t, uuid.New(), "CI")
 
 	if len(got) == 0 {
-		t.Fatal("a two-letter query found nothing; the LIKE fallback did not run")
+		t.Fatal("a two-letter query found nothing")
+	}
+}
+
+// A query with no word in it has nothing to look up in the index, and falls
+// back to an ILIKE instead of a to_tsquery parse error.
+func TestSearchFallsBackToILikeWhenNothingIsAWord(t *testing.T) {
+	f := newFixture(t)
+	f.seed(t, uuid.New(), "C++ ++ notes", "operator overloading", "published")
+
+	got := f.searchAs(t, uuid.New(), "++")
+
+	if len(got) == 0 {
+		t.Fatal("a punctuation-only query found nothing; the ILIKE fallback did not run")
 	}
 }
 
@@ -232,21 +245,5 @@ func TestPruneHistoriesKeepsTheNewestPerUser(t *testing.T) {
 	db.Table("search_histories").Where("user_id = ? AND query LIKE ?", theirs, prefix+"%").Count(&theirRows)
 	if theirRows != 1 {
 		t.Errorf("another user's single row was pruned along with mine (%d left)", theirRows)
-	}
-}
-
-// The whole point of reading the token size from the server is that it is not
-// assumed, so the check has to be "it matches what MySQL says" — asserting it
-// equals 3 would pass just as well if the read had been quietly dropped.
-func TestNewRepositoryReadsTheServersMinimumTokenSize(t *testing.T) {
-	db := testdb.Open(t)
-
-	var want int
-	if err := db.Raw("SELECT @@innodb_ft_min_token_size").Scan(&want).Error; err != nil {
-		t.Skipf("server will not report innodb_ft_min_token_size: %v", err)
-	}
-
-	if got := NewRepository(db).minToken; got != want {
-		t.Errorf("minToken = %d, want the server's %d", got, want)
 	}
 }

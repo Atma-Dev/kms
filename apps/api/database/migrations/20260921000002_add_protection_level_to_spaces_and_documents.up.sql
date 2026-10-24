@@ -8,10 +8,10 @@
 -- document_id standing for "the space default". It is two columns here
 -- instead, for two reasons:
 --
---   1. MySQL treats NULLs as distinct in a unique index, so
---      UNIQUE (space_id, document_id) would not stop a second, conflicting
---      space default from being inserted. The column cannot disagree with
---      itself.
+--   1. NULLs are distinct in a unique index, so UNIQUE (space_id,
+--      document_id) would not stop a second, conflicting space default from
+--      being inserted (short of NULLS NOT DISTINCT, Postgres 15+). The column
+--      cannot disagree with itself.
 --   2. Resolving the level is part of loading the document, and a column is
 --      read by the SELECT that was already happening. A table would add a
 --      query to the hot path of every document open.
@@ -21,7 +21,7 @@
 -- setting is what the audit trail (go-audit) already records, and a column
 -- beside it is a second answer to the same question.
 ALTER TABLE spaces
-    ADD COLUMN protection_level VARCHAR(8) NOT NULL DEFAULT 'normal' AFTER description;
+    ADD COLUMN protection_level VARCHAR(8) NOT NULL DEFAULT 'normal';
 
 ALTER TABLE documents
-    ADD COLUMN protection_level VARCHAR(8) NULL AFTER status;
+    ADD COLUMN protection_level VARCHAR(8) NULL;

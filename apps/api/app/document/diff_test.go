@@ -102,7 +102,7 @@ func TestExcerptCutsAtAWordBoundary(t *testing.T) {
 	}
 }
 
-// MySQL's JSON column sorts object keys and strips whitespace, so the stored
+// A JSONB column sorts object keys and strips whitespace, so the stored
 // form never matches the bytes a client sent. A byte comparison therefore
 // reports every edit as a content change — which is exactly the bug this
 // guards, and why it is worth a test of its own.

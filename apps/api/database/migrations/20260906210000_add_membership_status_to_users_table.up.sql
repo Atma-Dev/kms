@@ -10,12 +10,17 @@
 --
 -- UNIQUE on sso_id: without it, two concurrent membership pushes for the same
 -- person could each miss the other's insert and create two rows. NULLs are
--- exempt from MySQL's unique check, so rows with no sso_id yet are
+-- distinct in a Postgres unique index, so rows with no sso_id yet are
 -- unaffected.
-ALTER TABLE users DROP INDEX users_sso_id_index;
+--
+-- A CHECK rather than a Postgres ENUM type: adding a status to an enum type
+-- is its own ALTER TYPE that cannot run inside a transaction on older
+-- servers, and a constraint is one line to replace.
+DROP INDEX users_sso_id_index;
 ALTER TABLE users
-    ADD COLUMN membership_status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE' AFTER sso_id,
-    ADD COLUMN deactivated_at TIMESTAMP NULL AFTER membership_status,
-    ADD COLUMN synced_at TIMESTAMP NULL AFTER deactivated_at,
-    ADD UNIQUE KEY users_sso_id_unique (sso_id),
-    ADD INDEX users_membership_status_index (membership_status);
+    ADD COLUMN membership_status VARCHAR(8) NOT NULL DEFAULT 'ACTIVE'
+        CONSTRAINT users_membership_status_check CHECK (membership_status IN ('ACTIVE', 'INACTIVE')),
+    ADD COLUMN deactivated_at TIMESTAMPTZ NULL,
+    ADD COLUMN synced_at TIMESTAMPTZ NULL,
+    ADD CONSTRAINT users_sso_id_unique UNIQUE (sso_id);
+CREATE INDEX users_membership_status_index ON users (membership_status);

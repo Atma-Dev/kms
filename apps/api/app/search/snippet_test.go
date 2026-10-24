@@ -55,20 +55,23 @@ func TestSnippetKeepsTheDocumentsCasing(t *testing.T) {
 	}
 }
 
-// Boolean mode treats +, -, * and quotes as syntax. Left in, a query like
-// "C++ (draft)" is a parse error or a search for something else entirely.
-func TestBooleanQueryStripsOperatorsAndUnindexableWords(t *testing.T) {
+// to_tsquery treats &, |, !, :, *, quotes and parentheses as syntax. Left in,
+// a query like "C++ (draft)" is a parse error or a search for something else
+// entirely.
+func TestTsQueryStripsOperators(t *testing.T) {
 	cases := map[string]string{
-		"deploy staging":  "deploy* staging*",
-		"+deploy -legacy": "deploy* legacy*",
-		`"exact phrase"`:  "exact* phrase*",
-		"C++ (draft)":     "draft*", // "C" is below the index's minimum token
-		"ci cd":           "",       // nothing indexable — the caller falls back to LIKE
+		"deploy staging":  "'deploy':* | 'staging':*",
+		"+deploy -legacy": "'deploy':* | 'legacy':*",
+		`"exact phrase"`:  "'exact':* | 'phrase':*",
+		"C++ (draft)":     "'c':* | 'draft':*",
+		"it's & ok":       "'its':* | 'ok':*",
+		"ci cd":           "'ci':* | 'cd':*", // short words are indexed too
+		"++ %":            "",                // nothing to look up — the caller falls back to ILIKE
 	}
 
 	for raw, want := range cases {
-		if got := booleanQuery(raw, DefaultMinTokenSize); got != want {
-			t.Errorf("booleanQuery(%q) = %q, want %q", raw, got, want)
+		if got := tsQuery(raw); got != want {
+			t.Errorf("tsQuery(%q) = %q, want %q", raw, got, want)
 		}
 	}
 }

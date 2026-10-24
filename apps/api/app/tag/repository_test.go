@@ -24,7 +24,7 @@ func seedDocument(t *testing.T, db *gorm.DB) uuid.UUID {
 	name := "tagtest-" + spaceID.String()[:8]
 
 	if err := db.Exec(
-		"INSERT INTO spaces (id, name, slug, is_archived, created_by, created_at, updated_at) VALUES (?,?,?,0,?,NOW(),NOW())",
+		"INSERT INTO spaces (id, name, slug, is_archived, created_by, created_at, updated_at) VALUES (?,?,?,FALSE,?,NOW(),NOW())",
 		spaceID, name, name, author.ID,
 	).Error; err != nil {
 		t.Fatalf("failed to seed space: %v", err)

@@ -4,7 +4,7 @@ FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
-RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.19.1
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.19.1
 
 COPY go.mod go.sum ./
 RUN go mod download

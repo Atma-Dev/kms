@@ -1,35 +1,31 @@
--- Modul 3 FR-1. The PRD specifies a Postgres tsvector; this codebase is MySQL,
--- so the equivalent is a plain text column plus InnoDB FULLTEXT indexes.
+-- Modul 3 FR-1: the PRD's tsvector, setweight and GIN index.
 --
--- content is JSON (a TipTap node tree) and MySQL cannot index it as text, so
--- search_body carries the flattened plain text. It is filled in Go by
--- document.PlainText alongside Excerpt, in the same Save — which is what the
--- NFR's "ter-update dalam transaksi yang sama" asks for, without a trigger.
+-- content is JSON (a TipTap node tree), so search_body carries the flattened
+-- plain text. It is filled in Go by document.PlainText alongside Excerpt, in
+-- the same Save — which is what the NFR's "ter-update dalam transaksi yang
+-- sama" asks for. search_body also feeds search.Snippet, which needs the
+-- original words rather than the lexemes a tsvector keeps.
 --
--- Two indexes rather than one combined column: relevance weights title above
--- body (PRD: setweight 'A' vs 'C'), and MySQL scores one index at a time, so
--- the weighting is MATCH(title)*3 + MATCH(search_body) at query time.
-ALTER TABLE documents ADD COLUMN search_body MEDIUMTEXT NULL AFTER excerpt;
+-- search_vector is generated from title (weight A) and search_body (weight
+-- C), so Postgres keeps it in step with every write and no code path can
+-- forget it. The 'simple' configuration: the content is mostly Indonesian,
+-- which Postgres has no stemmer for, and an English stemmer would mangle it.
+-- 'simple' lowercases and keeps every word, short ones included.
+ALTER TABLE documents ADD COLUMN search_body TEXT NULL;
 
 -- Backfill so existing documents are searchable on day one instead of only
--- after someone re-saves them. '$**.text' collects every text node in the tree
--- at any depth; the REPLACEs turn the resulting JSON array into text.
---
--- Every structural character is replaced with a space rather than the exact
--- `", "` separator being matched: MySQL renders a JSON array with its own
--- spacing, and a backfill that depends on that spacing silently leaves the
--- punctuation in the index when it changes. A full-text index tokenises on
--- whitespace, so extra spaces cost nothing and a missed quote costs a word.
---
--- Approximate on purpose: escape sequences (\n, \") stay encoded here. Every
--- document gets exact text from document.PlainText on its next save, and a
--- stray backslash costs at most one token.
+-- after someone re-saves them: every "text" node in the tree, at any depth.
+-- Every document gets exact text from document.PlainText on its next save.
 UPDATE documents
-SET search_body = NULLIF(TRIM(
-    REPLACE(REPLACE(REPLACE(REPLACE(
-        COALESCE(JSON_EXTRACT(content, '$**.text'), '[]'),
-    '"', ' '), '[', ' '), ']', ' '), ',', ' ')), '')
+SET search_body = NULLIF(TRIM((
+    SELECT string_agg(node #>> '{}', ' ')
+    FROM jsonb_path_query(content, 'strict $.**.text') AS node
+)), '')
 WHERE search_body IS NULL;
 
-ALTER TABLE documents ADD FULLTEXT KEY documents_title_fulltext (title);
-ALTER TABLE documents ADD FULLTEXT KEY documents_search_body_fulltext (search_body);
+ALTER TABLE documents ADD COLUMN search_vector TSVECTOR GENERATED ALWAYS AS (
+    setweight(to_tsvector('simple', COALESCE(title, '')), 'A') ||
+    setweight(to_tsvector('simple', COALESCE(search_body, '')), 'C')
+) STORED;
+
+CREATE INDEX documents_search_vector_index ON documents USING GIN (search_vector);

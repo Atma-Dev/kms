@@ -57,7 +57,7 @@ func TestRenamingAPublishedDocumentRecordsNoVersion(t *testing.T) {
 	service, editor := f.service(), f.anEditor()
 	ctx := context.Background()
 
-	// Deliberately NOT doc.Content: reading it back gives MySQL's normalised
+	// Deliberately NOT doc.Content: reading it back gives JSONB's normalised
 	// form, and feeding that in compares normalised against normalised — which
 	// is how the first version of this test passed while renames still
 	// snapshotted in the running app. This is the shape a client actually

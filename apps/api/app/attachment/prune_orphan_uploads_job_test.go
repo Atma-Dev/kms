@@ -90,7 +90,7 @@ func TestPruneLeavesEverythingItShould(t *testing.T) {
 	}
 	spaceID, documentID := uuid.New(), uuid.New()
 	name := "prunetest-" + spaceID.String()[:8]
-	if err := db.Exec("INSERT INTO spaces (id, name, slug, is_archived, created_by, created_at, updated_at) VALUES (?,?,?,0,?,NOW(),NOW())",
+	if err := db.Exec("INSERT INTO spaces (id, name, slug, is_archived, created_by, created_at, updated_at) VALUES (?,?,?,FALSE,?,NOW(),NOW())",
 		spaceID, name, name, author.ID).Error; err != nil {
 		t.Fatal(err)
 	}

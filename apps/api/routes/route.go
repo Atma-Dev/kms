@@ -34,7 +34,8 @@ func RegisterRoute(router *gin.Engine, c *Container) {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	api := router.Group("/api")
+	// Every :id-shaped parameter under /api is a UUID — see ValidateUUIDParams.
+	api := router.Group("/api", middleware2.ValidateUUIDParams())
 	protected := api.Group("", middleware2.AuthMiddleware(), middleware2.AuditContextMiddleware())
 
 	authGroup := api.Group("/auth")

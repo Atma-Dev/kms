@@ -3,10 +3,10 @@
 -- Users create them freely, so `name` is what they typed and `slug` is what
 -- makes "Deployment" and "deployment" the same tag.
 CREATE TABLE tags (
-    id CHAR(36) NOT NULL PRIMARY KEY,
+    id UUID NOT NULL PRIMARY KEY,
     name VARCHAR(64) NOT NULL,
     slug VARCHAR(64) NOT NULL,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
-    UNIQUE KEY tags_slug_unique (slug)
+    created_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NULL,
+    CONSTRAINT tags_slug_unique UNIQUE (slug)
 );

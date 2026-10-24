@@ -1,15 +1,12 @@
 // Package search is Modul 3: finding a document by what is written in it,
 // rather than by clicking down to it through spaces and categories.
 //
-// # Why this is not a tsvector
+// # The index
 //
-// The PRD specifies Postgres — tsvector, setweight, ts_rank, a GIN index.
-// This codebase is MySQL, so the equivalent is InnoDB FULLTEXT: two indexes
-// (documents.title and documents.search_body) matched separately, and the
-// PRD's A/B/C weighting applied as arithmetic at query time —
-// MATCH(title) * TitleWeight + MATCH(search_body). MySQL scores one index at
-// a time, which is what makes the weight a multiplication here instead of a
-// property of the index.
+// What the PRD specifies: documents.search_vector, a tsvector generated from
+// the title (weight A) and search_body (weight C), behind a GIN index, ranked
+// with ts_rank. Postgres generates the column, so every write keeps it in step
+// and no code path can forget to.
 //
 // # The index is not a service
 //
@@ -30,6 +27,7 @@ package search
 
 import (
 	"api-kms/app"
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -40,15 +38,11 @@ import (
 // that was meant; a document that mentions it once in a paragraph rarely is.
 const TitleWeight = 3
 
-// DefaultMinTokenSize is InnoDB's own default for innodb_ft_min_token_size.
-// It is only the fallback: NewRepository reads the running server's value,
-// because an install that tuned it down would otherwise keep taking the LIKE
-// fallback for words the index now holds — and one that tuned it up would
-// search the index for words that are not in it.
-//
-// Words shorter than the limit are not indexed at all, which is what decides
-// whether a query can use the index or has to fall back.
-const DefaultMinTokenSize = 3
+// rankWeights is the weight array ts_rank takes, in its {D, C, B, A} order:
+// the body is C and the title A, TitleWeight times as heavy. Spelled out
+// rather than left to ts_rank's default {0.1, 0.2, 0.4, 1.0}, whose title is
+// worth five bodies — a number nobody here chose.
+var rankWeights = fmt.Sprintf("{0, %g, 0, %g}", 0.1, 0.1*TitleWeight)
 
 // History is one remembered query (FR-5), one row per user per distinct query
 // — see the migration for why that is a unique key and not an append log.
@@ -62,33 +56,30 @@ func (History) TableName() string {
 	return "search_histories"
 }
 
-// booleanQuery turns what someone typed into a MySQL BOOLEAN MODE expression.
+// tsQuery turns what someone typed into a to_tsquery expression.
 //
-// Two things happen here, and both are load-bearing:
+// Three things happen here, and all are load-bearing:
 //
-// Operators are stripped. In boolean mode `+`, `-`, `*`, `"`, `(`, `)`, `~`,
-// `<` and `>` are syntax, so a query like "C++ (draft)" is either a syntax
-// error or a search for something the user did not ask for. Nobody types those
-// meaning to drive the parser.
+// Operators are stripped. In to_tsquery `&`, `|`, `!`, `<->`, `:`, `*`, `'`
+// and parentheses are syntax, so a query like "C++ (draft)" is either a
+// syntax error or a search for something the user did not ask for. Nobody
+// types those meaning to drive the parser. Terms keeps only letters and
+// digits, so each term is safe inside its quotes.
 //
-// Every surviving term gets a trailing `*`. Prefix matching is what makes a
-// search box feel like it is keeping up: "deploy" should find "deployment"
-// while it is still being typed.
+// Every term gets `:*`. Prefix matching is what makes a search box feel like
+// it is keeping up: "deploy" should find "deployment" while it is still being
+// typed.
 //
-// Terms are left implicitly OR-ed rather than each being required with `+`.
-// Requiring all of them means a four-word question finds nothing; OR-ing them
-// and letting the relevance score sort it out means the document matching all
-// four comes first anyway.
+// Terms are OR-ed with `|` rather than AND-ed. Requiring all of them means a
+// four-word question finds nothing; OR-ing them and letting ts_rank sort it
+// out means the document matching all four comes first anyway.
 //
-// An empty result means nothing here is indexable at minToken — the caller
-// falls back to a LIKE.
-func booleanQuery(raw string, minToken int) string {
-	terms := make([]string, 0, 8)
-	for _, term := range Terms(raw) {
-		if len([]rune(term)) < minToken {
-			continue
-		}
-		terms = append(terms, term+"*")
+// An empty result means nothing typed was a word at all — the caller falls
+// back to an ILIKE.
+func tsQuery(raw string) string {
+	terms := Terms(raw)
+	for i, term := range terms {
+		terms[i] = "'" + strings.ToLower(term) + "':*"
 	}
-	return strings.Join(terms, " ")
+	return strings.Join(terms, " | ")
 }

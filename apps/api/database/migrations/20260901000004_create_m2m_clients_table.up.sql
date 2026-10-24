@@ -5,11 +5,11 @@
 -- plaintext is only ever returned once, at creation. revoked_at (not a delete)
 -- keeps the row so a revoked client's past requests stay attributable.
 CREATE TABLE m2m_clients (
-    id CHAR(36) NOT NULL PRIMARY KEY,
+    id UUID NOT NULL PRIMARY KEY,
     client VARCHAR(255) NOT NULL,
     secret VARCHAR(255) NOT NULL,
-    revoked_at TIMESTAMP NULL,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
-    UNIQUE KEY m2m_clients_client_unique (client)
+    revoked_at TIMESTAMPTZ NULL,
+    created_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NULL,
+    CONSTRAINT m2m_clients_client_unique UNIQUE (client)
 );
