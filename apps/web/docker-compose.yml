@@ -1,3 +1,7 @@
+# Project name pinned: the folder is now apps/web, but the container on the
+# server is named after the old repo (web-kms).
+name: web-kms
+
 services:
   web:
     build:

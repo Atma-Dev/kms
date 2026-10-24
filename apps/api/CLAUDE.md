@@ -2,7 +2,7 @@
 
 Go REST API for the KMS (knowledge management system). Owns its accounts (email + password) and issues its own JWT tokens. Google login is available as an alternate way to prove the same identity.
 
-Frontend lives at `../web-kms` (Nuxt 4 SPA).
+Frontend lives at `../web` (Nuxt 4 SPA).
 
 Started as a copy of `lms-api` with the LMS domain removed. What is left is the
 base — auth/RBAC/users plus notifications, activity log, audit trail, job logs,
@@ -894,7 +894,7 @@ DELETE /api/management/cache?key=read:users:lookup
 ```
 
 `GET /api/management/cache` (`management.cache.show`) lists the live keys with
-their item count and remaining TTL; `/account/cache` in `../web-kms` renders it.
+their item count and remaining TTL; `/account/cache` in `../web` renders it.
 `watchCacheClearSignal` in `main.go` is the SIGHUP half — it cannot be a binary
 under `cmd/`, since the cache is a map in the serving process and a second
 process would only clear its own empty copy.

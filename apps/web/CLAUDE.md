@@ -1,6 +1,6 @@
 # web-kms
 
-Nuxt 4 SPA (`ssr: false`) — the frontend for the KMS (knowledge management system). The API lives at `../api-kms`.
+Nuxt 4 SPA (`ssr: false`) — the frontend for the KMS (knowledge management system). The API lives at `../api`.
 
 Started as a copy of `lms-web` with the LMS pages removed. What is left is the
 base — auth, account/RBAC and the operational pages — and the KMS pages go on

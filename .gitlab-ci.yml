@@ -1,0 +1,95 @@
+image: ubuntu:latest
+
+stages:
+  # - deploy-prod   # prod server belum disetup
+  - deploy-dev
+
+# One checkout on the server ($DEPLOYMENT_PATH) holds both apps; each job
+# updates it, then runs compose from its own app folder. The compose files pin
+# their project names (api-kms, web-kms), so the containers keep the names they
+# had before the monorepo.
+.deploy:
+  allow_failure: false
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh-add <(echo "$PRIVKEY")
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH && git checkout . && git fetch && git checkout $CI_COMMIT_REF_NAME && git pull origin $CI_COMMIT_REF_NAME"
+
+.deploy_api:
+  extends: .deploy
+  script:
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH/apps/api && docker compose build web"
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH/apps/api && docker compose run --rm web sh -c 'migrate -path database/migrations -database \$GARTISAN_DATABASE_URL up'"
+    # Permissions are defined in enums/permission.go, so the database has to
+    # catch up with the code on every deploy or a new gate 403s everyone. Runs
+    # after the schema (the table has to exist) and before the app comes up, so
+    # the new container starts with the permission set it was built for — it
+    # caches the permission list in process for five minutes, and --force-recreate
+    # below is what clears that.
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH/apps/api && docker compose run --rm web ./sync-permission"
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH/apps/api && docker compose up -d --force-recreate --remove-orphans"
+
+.deploy_web:
+  extends: .deploy
+  script:
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH/apps/web && docker compose build web"
+    - ssh -p 22522 -o StrictHostKeyChecking=no devops@"$SERVER_IP" "cd $DEPLOYMENT_PATH/apps/web && docker compose up -d --force-recreate --remove-orphans"
+
+.dev:
+  stage: deploy-dev
+  environment: dev
+  # Both jobs update the same checkout, so they must not run at once.
+  resource_group: kms-dev
+  tags:
+    - cid-stg
+  variables:
+    PRIVKEY: "${KEY_DEV_1}"
+    SERVER_IP: "${IP_DEV_1}"
+    DEPLOYMENT_PATH: "/deployment/kms"
+
+deploy_api_dev:
+  extends: [.deploy_api, .dev]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "devops-cicd"'
+      changes:
+        - apps/api/**/*
+        - .gitlab-ci.yml
+
+deploy_web_dev:
+  extends: [.deploy_web, .dev]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "devops-cicd"'
+      changes:
+        - apps/web/**/*
+        - .gitlab-ci.yml
+
+# prod belum disetup, aktifkan lagi setelah server siap
+# .prod:
+#   stage: deploy-prod
+#   environment: prod
+#   resource_group: kms-prod
+#   tags:
+#     - cid-stg
+#   variables:
+#     PRIVKEY: "${KEY_CID_PROD_1}"
+#     SERVER_IP: "${IP_CID_PROD_1}"
+#     DEPLOYMENT_PATH: "/deployment/kms"
+#
+# deploy_api_prod:
+#   extends: [.deploy_api, .prod]
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "devops-cicd-prod"'
+#       changes:
+#         - apps/api/**/*
+#         - .gitlab-ci.yml
+#
+# deploy_web_prod:
+#   extends: [.deploy_web, .prod]
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "devops-cicd-prod"'
+#       changes:
+#         - apps/web/**/*
+#         - .gitlab-ci.yml

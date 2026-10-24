@@ -1,3 +1,7 @@
+# Project name pinned: the folder is now apps/api, but the containers and the
+# storage volume on the server are named after the old repo (api-kms).
+name: api-kms
+
 services:
   web:
     build:

@@ -1,4 +1,4 @@
-// Mirrors enums/permission.go (PermissionSeeder) in ../api-kms.
+// Mirrors enums/permission.go (PermissionSeeder) in ../api.
 export enum Permission {
   MANAGEMENT_USERS_SHOW = 'management.users.show',
   MANAGEMENT_USERS_UPDATE = 'management.users.update',

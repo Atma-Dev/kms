@@ -1,6 +1,6 @@
 # web-kms
 
-Nuxt 4 SPA (`ssr: false`) untuk KMS (knowledge management system). API-nya di [`../api-kms`](../api-kms).
+Nuxt 4 SPA (`ssr: false`) untuk KMS (knowledge management system). API-nya di [`apps/api`](../api).
 
 Konvensi halaman, pola pagination, dan catatan UI ada di [CLAUDE.md](CLAUDE.md).
 

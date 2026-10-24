@@ -19,7 +19,7 @@ export default interface User extends BaseEntity {
   membership_status: 'ACTIVE' | 'INACTIVE'
   deactivated_at: string | null
   roles: UserRole[]
-  /** Flattened across every role, deduped — see PermissionSeeder in ../api-kms. */
+  /** Flattened across every role, deduped — see PermissionSeeder in ../api. */
   permissions: string[]
   access_token?: string
 }
